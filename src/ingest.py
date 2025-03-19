@@ -7,6 +7,16 @@ import os
 import fitz
 import argparse
 import time
-from tqdm import tqdm
-from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+
+REDIS_HOST = "localhost"
+REDIS_PORT = 6380
+
+VECTOR_DIM = 768
+INDEX_NAME = "embedding_index"
+DOC_PREFIX = "doc:"
+DISTANCE_METRIC = "COSINE"
+
+CHUNK_SIZE = 300 # should this be a list? go through different chunk sizes ?
+
+EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
+
