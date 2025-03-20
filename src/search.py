@@ -19,16 +19,50 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-# def cosine_similarity(vec1, vec2):
-#     """Calculate cosine similarity between two vectors."""
-#     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-
-
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
+def search_embeddings(query, top_k=3):
+    query_embedding = get_embedding(query)
+
+    # Convert embedding to numpy array for ChromaDB search
+    query_vector = np.array(query_embedding, dtype=np.float32)
+    try:
+        # Perform the search on ChromaDB
+        results = chroma_collection.query(
+            query_embeddings=[query_vector.tolist()],  # Convert to list for ChromaDB compatibility
+            n_results=top_k,
+        )
+
+        top_results = []
+
+        # Check if we have results
+        if results and 'metadatas' in results and results['metadatas']:
+            for i in range(len(results['metadatas'][0])):  # Iterate using index
+                metadata = results['metadatas'][0][i]
+                distance = results['distances'][0][i] if 'distances' in results else 0
+
+                top_results.append({
+                    "file": metadata.get("file", "Unknown file"),
+                    "page": metadata.get("page", "Unknown page"),
+                    "chunk": metadata.get("chunk", "Unknown chunk"),
+                    "similarity": 1 - distance,  # Convert distance to similarity
+                })
+
+        # Print results for debugging
+        for result in top_results:
+            print(
+                f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
+            )
+
+        return top_results
+
+    except Exception as e:
+        print(f"Search error: {e}")
+        return []
+
+'''
 
 def search_embeddings(query, top_k=3):
 
@@ -77,7 +111,7 @@ def search_embeddings(query, top_k=3):
         print(f"Search error: {e}")
         return []
 
-
+'''
 def generate_rag_response(query, context_results):
 
     # Prepare context string
