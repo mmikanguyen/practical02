@@ -75,16 +75,8 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
             }
         )
 def get_embedding(text, model=EMBEDDING_MODEL):
-    if not text or not text.strip():
-        return [0.0] * VECTOR_DIM
-
-    try:
-        response = ollama.embeddings(model=model, prompt=text)
-        return response["embedding"]
-    except Exception as e:
-        print(f"Error generating embedding: {e}")
-        return [0.0] * VECTOR_DIM
-
+    response = ollama.embeddings(model=model, prompt=text)
+    return response["embedding"]
 
 def extract_text_from_pdf(pdf_path):
     # strip stop words and punctuation??
