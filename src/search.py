@@ -13,8 +13,10 @@ from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
 
 
-# Initialize models
+# Embedding models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# vectors dbs
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
@@ -32,11 +34,10 @@ def cosine_similarity(vec1, vec2):
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+    #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
-<<<<<<< HEAD
-=======
 
 def search_embeddings_chroma(query, top_k=3):
     stats = {
@@ -86,11 +87,7 @@ def search_embeddings_chroma(query, top_k=3):
     except Exception as e:
         print(f"Search error: {e}")
         return []
-<<<<<<< HEAD
-=======
 
-'''
->>>>>>> 483d5954bb39c94735da4d1e6c1a66bc7803c5f4
 
 def search_embeddings_redis(query, top_k=3):
 
@@ -139,7 +136,7 @@ def search_embeddings_redis(query, top_k=3):
         print(f"Search error: {e}")
         return []
 
-<<<<<<< HEAD
+
 def search_embeddings_mongo(query, top_k=3):
     query_embedding = get_embedding(query)
 
@@ -182,13 +179,12 @@ def search_embeddings_mongo(query, top_k=3):
         return []
 
 
-def generate_rag_response(query, context_results):
-=======
-'''
+#def generate_rag_response(query, context_results):
+
+
 def generate_rag_response(query, context_results, stats=None):
 
     gen_start_time = time.time()
->>>>>>> 483d5954bb39c94735da4d1e6c1a66bc7803c5f4
 
     # Prepare context string
     context_str = "\n".join(
@@ -249,19 +245,16 @@ def interactive_search():
         if query.lower() == "exit":
             break
 
-        # Search for relevant embeddings
-<<<<<<< HEAD
-        context_results = search_embeddings_mongo(query)
-=======
-        context_results, stats = search_embeddings_chroma(query)
->>>>>>> 483d5954bb39c94735da4d1e6c1a66bc7803c5f4
+        # Search for relevant embeddings from the chosen database
+        context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
 
         # Generate RAG response
-        response, updated_stats = generate_rag_response(query, context_results)
+        response, updated_stats = generate_rag_response(query, context_results, stats)
         print_statistics(updated_stats)
 
         print("\n--- Response ---")
         print(response)
+
 
 
 
