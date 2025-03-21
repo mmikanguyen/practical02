@@ -4,6 +4,7 @@ import numpy as np
 import os
 import fitz
 from bson.binary import Binary
+import time
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
@@ -53,6 +54,7 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
 
 # Process all PDF files in a given directory
 def process_pdfs(data_dir):
+    start_time = time.time_ns()  # Start timing for the entire process
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".pdf"):
             pdf_path = os.path.join(data_dir, file_name)
@@ -68,6 +70,9 @@ def process_pdfs(data_dir):
                         embedding=embedding,
                     )
             print(f" -----> Processed {file_name}")
+
+    elapsed_time = time.time_ns() - start_time  # End timing for the entire process
+    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} nanoseconds.")
 
 
 def main():

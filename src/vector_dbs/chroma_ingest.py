@@ -4,7 +4,7 @@ import numpy as np
 import fitz
 import os
 import time
-
+from sentence_transformers import SentenceTransformer
 
 db = chromadb.PersistentClient(path="./chroma_db")
 collection = db.get_or_create_collection(name="pdf_embeddings")
@@ -22,6 +22,10 @@ def clear_chroma_store():
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
+
+# SentenceTransformer("all-MiniLM-L6-v2")
+def get_embedding_st(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
+    return model.encode(text).tolist()
 
 # Store embedding in ChromaDB
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
@@ -52,6 +56,7 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
     return chunks
 
 
+# Process all PDF files in a given directory
 def process_pdfs(data_dir):
     start_time = time.time_ns()  # Start timing for the entire process
     for file_name in os.listdir(data_dir):
@@ -71,7 +76,7 @@ def process_pdfs(data_dir):
             print(f" -----> Processed {file_name}")
 
     elapsed_time = time.time_ns() - start_time  # End timing for the entire process
-    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} seconds.")
+    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} nanoseconds.")
 
 
 # Query ChromaDB
