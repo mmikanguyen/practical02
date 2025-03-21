@@ -4,7 +4,7 @@ import numpy as np
 import fitz
 import os
 import time
-
+from sentence_transformers import SentenceTransformer
 
 db = chromadb.PersistentClient(path="./chroma_db")
 collection = db.get_or_create_collection(name="pdf_embeddings")
@@ -22,6 +22,10 @@ def clear_chroma_store():
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
+
+# SentenceTransformer("all-MiniLM-L6-v2")
+def get_embedding_st(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
+    return model.encode(text).tolist()
 
 # Store embedding in ChromaDB
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
