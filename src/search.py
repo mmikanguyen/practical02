@@ -138,17 +138,21 @@ def search_embeddings_redis(query, top_k=3, db="redis"):
     unique_docs = set()
 
     # Check if we have results
-    if results and 'metadatas' in results and results['metadatas']:
-        for i in range(len(results['metadatas'][0])):  # Iterate using index
-            metadata = results['metadatas'][0][i]
-            distance = results['distances'][0][i] if 'distances' in results else 0
+    if results and hasattr(results, 'docs') and results.docs:
+        for result in results.docs:
+            # Get file name for tracking unique documents
+            file_name = getattr(result, 'file', 'Unknown file')
+            unique_docs.add(file_name)
 
+            # Add to results
             top_results.append({
-                "file": metadata.get("file", "Unknown file"),
-                "page": metadata.get("page", "Unknown page"),
-                "chunk": metadata.get("chunk", "Unknown chunk"),
-                "similarity": 1 - distance,  # Convert distance to similarity
+                "file": file_name,
+                "page": getattr(result, 'page', 'Unknown page'),
+                "chunk": getattr(result, 'chunk', 'Unknown chunk'),
+                "similarity": getattr(result, 'vector_distance', 0),
             })
+
+    top_results = top_results[:top_k]
 
     stats["query_time"] = time.time() - start_time
 
@@ -256,8 +260,6 @@ def print_statistics(stats):
         print("------------------------")
         return
     print("\n--- Query Statistics ---")
-    print(f"Documents searched: {stats.get('documents_searched', 0)}")
-    print(f"Chunks used: {stats.get('chunks_used', 0)}")
     print(f"Query time: {stats.get('query_time', 0):.4f} seconds")
     if "generation_time" in stats:
         print(f"Generation time: {stats['generation_time']:.4f} seconds")
