@@ -36,11 +36,64 @@ def clear_redis_db(redis_client):
 def create_vector_index():
     pass
 
-def chunk():
-    pass
+def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, embedding):
+        key = f"{DOC_PREFIX}{document_id}:p{page_num}:c{chunk_id}"
 
-def get_embedding():
-    pass
+        embedding_bytes = np.array(embedding, dtype=np.float32).tobytes()
+        redis_client.hset(
+            key,
+            mapping={
+                "file": document_id,
+                "page": str(page_num),
+                "chunk_id": str(chunk_id),
+                "text": text,
+                "embedding": embedding_bytes
+            }
+        )
+def get_embedding(text, model=EMBEDDING_MODEL):
+    if not text or not text.strip():
+        return [0.0] * VECTOR_DIM
+
+    try:
+        response = ollama.embeddings(model=model, prompt=text)
+        return response["embedding"]
+    except Exception as e:
+        print(f"Error generating embedding: {e}")
+        return [0.0] * VECTOR_DIM
+
+
+def extract_text_from_pdf(pdf_path):
+    # strip stop words and punctuation??
+
+    try:
+        doc = fitz.open(pdf_path)
+        pages = []
+
+        for page_num in range(len(doc)):
+            text = doc[page_num].get_text()
+            if text.strip():
+                pages.append((page_num, text))
+
+        return pages
+    except Exception as e:
+        print(f"Error extracting text from PDF: {e}")
+        return []
+
+
+def chunk_text(text, chunk_size=CHUNK_SIZE):
+    words = text.split()
+
+    if not words:
+        return [""]
+
+    chunks = []
+
+    for i in range(0, len(words), chunk_size):
+        chunk = " ".join(words[i:i + chunk_size])
+        chunks.append(chunk)
+
+    return chunks
+
 
 def main():
 
