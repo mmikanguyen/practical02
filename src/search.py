@@ -52,40 +52,41 @@ def search_embeddings_chroma(query, top_k=3):
 
     # Convert embedding to numpy array for ChromaDB search
     query_vector = np.array(query_embedding, dtype=np.float32)
-    try:
-        # Perform the search on ChromaDB
-        results = chroma_collection.query(
-            query_embeddings=[query_vector.tolist()],  # Convert to list for ChromaDB compatibility
-            n_results=top_k,
+
+    # Perform the search on ChromaDB
+    results = chroma_collection.query(
+        query_embeddings=[query_vector.tolist()],  # Convert to list for ChromaDB compatibility
+        n_results=top_k,
+    )
+
+    top_results = []
+    unique_docs = set()
+
+    # Check if we have results
+    if results and 'metadatas' in results and results['metadatas']:
+        for i in range(len(results['metadatas'][0])):  # Iterate using index
+            metadata = results['metadatas'][0][i]
+            distance = results['distances'][0][i] if 'distances' in results else 0
+
+            top_results.append({
+                "file": metadata.get("file", "Unknown file"),
+                "page": metadata.get("page", "Unknown page"),
+                "chunk": metadata.get("chunk", "Unknown chunk"),
+                "similarity": 1 - distance,  # Convert distance to similarity
+            })
+
+    stats["documents_searched"] = len(unique_docs)
+    stats["chunks_used"] = len(top_results)
+    stats["query_time"] = time.time() - start_time
+
+    # Print results for debugging
+    for result in top_results:
+        print(
+            f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
         )
 
-        top_results = []
-        unique_docs = set()
+    return top_results, stats
 
-        # Check if we have results
-        if results and 'metadatas' in results and results['metadatas']:
-            for i in range(len(results['metadatas'][0])):  # Iterate using index
-                metadata = results['metadatas'][0][i]
-                distance = results['distances'][0][i] if 'distances' in results else 0
-
-                top_results.append({
-                    "file": metadata.get("file", "Unknown file"),
-                    "page": metadata.get("page", "Unknown page"),
-                    "chunk": metadata.get("chunk", "Unknown chunk"),
-                    "similarity": 1 - distance,  # Convert distance to similarity
-                })
-
-        # Print results for debugging
-        for result in top_results:
-            print(
-                f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
-            )
-
-        return top_results, stats
-
-    except Exception as e:
-        print(f"Search error: {e}")
-        return []
 
 '''
 
@@ -141,6 +142,17 @@ def generate_rag_response(query, context_results, stats=None):
 
     gen_start_time = time.time()
 
+    if stats is None:
+        stats = {
+            "documents_searched": 0,
+            "chunks_used": len(context_results),
+            "query_time": 0,
+            "database_used": "chroma"
+        }
+
+    original_query_time = stats.get("query_time", 0)
+    print(f"DEBUG - Inside generate_rag_response - Original query time: {original_query_time}")
+
     # Prepare context string
     context_str = "\n".join(
         [
@@ -169,18 +181,26 @@ Answer:"""
         model="mistral:latest", messages=[{"role": "user", "content": prompt}]
     )
 
-    if stats:
-        stats["generation_time"] = time.time() - gen_start_time
-        stats["total_time"] = stats["query_time"] + stats["generation_time"]
+    stats["generation_time"] = time.time() - gen_start_time
+    stats["total_time"] = stats.get("query_time", 0) + stats["generation_time"]
+    stats["query_time"] = original_query_time
+
+    print(f"DEBUG - After response generation - Final query time: {stats['query_time']}")
+
 
     return response["message"]["content"], stats
 
 def print_statistics(stats):
-    """Print statistics about the search and generation process."""
+    if stats is None:
+        print("\n--- Query Statistics ---")
+        print("No statistics available")
+        print("------------------------")
+        return
+
     print("\n--- Query Statistics ---")
-    print(f"Documents searched: {stats['documents_searched']}")
-    print(f"Chunks used: {stats['chunks_used']}")
-    print(f"Query time: {stats['query_time']:.4f} seconds")
+    print(f"Documents searched: {stats.get('documents_searched', 0)}")
+    print(f"Chunks used: {stats.get('chunks_used', 0)}")
+    print(f"Query time: {stats.get('query_time', 0):.4f} seconds")
     if "generation_time" in stats:
         print(f"Generation time: {stats['generation_time']:.4f} seconds")
     if "total_time" in stats:
@@ -202,8 +222,11 @@ def interactive_search():
         # Search for relevant embeddings
         context_results, stats = search_embeddings_chroma(query)
 
+        print("DEBUG - Stats after search:", stats)
+
+
         # Generate RAG response
-        response, updated_stats = generate_rag_response(query, context_results)
+        response, updated_stats = generate_rag_response(query, context_results, stats=stats)
         print_statistics(updated_stats)
 
         print("\n--- Response ---")
