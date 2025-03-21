@@ -13,8 +13,10 @@ from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
 
 
-# Initialize models
+# Embedding models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# vectors dbs
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
@@ -32,11 +34,10 @@ def cosine_similarity(vec1, vec2):
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+    #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
-def search_embeddings_mongo(query, top_k=3):
-    pass
 
 def search_embeddings_chroma(query, top_k=3):
     stats = {
@@ -52,43 +53,41 @@ def search_embeddings_chroma(query, top_k=3):
 
     # Convert embedding to numpy array for ChromaDB search
     query_vector = np.array(query_embedding, dtype=np.float32)
-
-    # Perform the search on ChromaDB
-    results = chroma_collection.query(
-        query_embeddings=[query_vector.tolist()],  # Convert to list for ChromaDB compatibility
-        n_results=top_k,
-    )
-
-    top_results = []
-    unique_docs = set()
-
-    # Check if we have results
-    if results and 'metadatas' in results and results['metadatas']:
-        for i in range(len(results['metadatas'][0])):  # Iterate using index
-            metadata = results['metadatas'][0][i]
-            distance = results['distances'][0][i] if 'distances' in results else 0
-
-            top_results.append({
-                "file": metadata.get("file", "Unknown file"),
-                "page": metadata.get("page", "Unknown page"),
-                "chunk": metadata.get("chunk", "Unknown chunk"),
-                "similarity": 1 - distance,  # Convert distance to similarity
-            })
-
-    stats["documents_searched"] = len(unique_docs)
-    stats["chunks_used"] = len(top_results)
-    stats["query_time"] = time.time() - start_time
-
-    # Print results for debugging
-    for result in top_results:
-        print(
-            f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
+    try:
+        # Perform the search on ChromaDB
+        results = chroma_collection.query(
+            query_embeddings=[query_vector.tolist()],  # Convert to list for ChromaDB compatibility
+            n_results=top_k,
         )
 
-    return top_results, stats
+        top_results = []
+        unique_docs = set()
 
+        # Check if we have results
+        if results and 'metadatas' in results and results['metadatas']:
+            for i in range(len(results['metadatas'][0])):  # Iterate using index
+                metadata = results['metadatas'][0][i]
+                distance = results['distances'][0][i] if 'distances' in results else 0
 
-'''
+                top_results.append({
+                    "file": metadata.get("file", "Unknown file"),
+                    "page": metadata.get("page", "Unknown page"),
+                    "chunk": metadata.get("chunk", "Unknown chunk"),
+                    "similarity": 1 - distance,  # Convert distance to similarity
+                })
+
+        # Print results for debugging
+        for result in top_results:
+            print(
+                f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
+            )
+
+        return top_results, stats
+
+    except Exception as e:
+        print(f"Search error: {e}")
+        return []
+
 
 def search_embeddings_redis(query, top_k=3):
 
@@ -137,21 +136,55 @@ def search_embeddings_redis(query, top_k=3):
         print(f"Search error: {e}")
         return []
 
-'''
+
+def search_embeddings_mongo(query, top_k=3):
+    query_embedding = get_embedding(query)
+
+    # Convert the query embedding to a numpy array
+    query_vector = np.array(query_embedding, dtype=np.float32)
+
+    try:
+        # Retrieve all documents from MongoDB collection
+        all_docs = collection.find()
+
+        # List to hold documents with their cosine similarity scores
+        scored_docs = []
+
+        for doc in all_docs:
+            # Extract embedding from the document
+            doc_embedding = np.array(doc['embedding'], dtype=np.float32)
+
+            # Compute the cosine similarity between the query and the document embedding
+            similarity = cosine_similarity(query_vector, doc_embedding)
+
+            # Append the document and its similarity score to the list
+            scored_docs.append({
+                'file': doc.get('file', 'Unknown file'),
+                'page': doc.get('page', 'Unknown page'),
+                'chunk': doc.get('chunk', 'Unknown chunk'),
+                'similarity': similarity
+            })
+
+        # Sort documents by similarity in descending order and get the top_k
+        top_results = sorted(scored_docs, key=lambda x: x['similarity'], reverse=True)[:top_k]
+
+        # Print results for debugging
+        for result in top_results:
+            print(f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}")
+
+        return top_results
+
+    except Exception as e:
+        print(f"Search error: {e}")
+        return []
+
+
+#def generate_rag_response(query, context_results):
+
+
 def generate_rag_response(query, context_results, stats=None):
 
     gen_start_time = time.time()
-
-    if stats is None:
-        stats = {
-            "documents_searched": 0,
-            "chunks_used": len(context_results),
-            "query_time": 0,
-            "database_used": "chroma"
-        }
-
-    original_query_time = stats.get("query_time", 0)
-    print(f"DEBUG - Inside generate_rag_response - Original query time: {original_query_time}")
 
     # Prepare context string
     context_str = "\n".join(
@@ -181,32 +214,25 @@ Answer:"""
         model="mistral:latest", messages=[{"role": "user", "content": prompt}]
     )
 
-    stats["generation_time"] = time.time() - gen_start_time
-    stats["total_time"] = stats.get("query_time", 0) + stats["generation_time"]
-    stats["query_time"] = original_query_time
-
-    print(f"DEBUG - After response generation - Final query time: {stats['query_time']}")
-
+    if stats:
+        stats["generation_time"] = time.time() - gen_start_time
+        stats["total_time"] = stats["query_time"] + stats["generation_time"]
 
     return response["message"]["content"], stats
 
 def print_statistics(stats):
-    if stats is None:
-        print("\n--- Query Statistics ---")
-        print("No statistics available")
-        print("------------------------")
-        return
-
+    """Print statistics about the search and generation process."""
     print("\n--- Query Statistics ---")
-    print(f"Documents searched: {stats.get('documents_searched', 0)}")
-    print(f"Chunks used: {stats.get('chunks_used', 0)}")
-    print(f"Query time: {stats.get('query_time', 0):.4f} seconds")
+    print(f"Documents searched: {stats['documents_searched']}")
+    print(f"Chunks used: {stats['chunks_used']}")
+    print(f"Query time: {stats['query_time']:.4f} seconds")
     if "generation_time" in stats:
         print(f"Generation time: {stats['generation_time']:.4f} seconds")
     if "total_time" in stats:
         print(f"Total time: {stats['total_time']:.4f} seconds")
     print("Database used:", stats.get("database_used", "chroma"))
     print("------------------------")
+
 
 def interactive_search():
     """Interactive search interface."""
@@ -219,18 +245,16 @@ def interactive_search():
         if query.lower() == "exit":
             break
 
-        # Search for relevant embeddings
-        context_results, stats = search_embeddings_chroma(query)
-
-        print("DEBUG - Stats after search:", stats)
-
+        # Search for relevant embeddings from the chosen database
+        context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
 
         # Generate RAG response
-        response, updated_stats = generate_rag_response(query, context_results, stats=stats)
+        response, updated_stats = generate_rag_response(query, context_results, stats)
         print_statistics(updated_stats)
 
         print("\n--- Response ---")
         print(response)
+
 
 
 
