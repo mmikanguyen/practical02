@@ -284,7 +284,7 @@ def print_statistics(stats):
     print("------------------------")
 
 
-def log_stats_to_csv(stats, query, file_path="src/stats/mongo.csv"):
+def log_stats_to_csv(stats, query, file_path):
     # need to align with ingest files !!
 
     directory = os.path.dirname(file_path)
@@ -340,9 +340,9 @@ def interactive_search():
             break
 
         # Search for relevant embeddings from the chosen database
-        #context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
+        context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
         #context_results, stats = search_embeddings_redis(query)  # or switch to MongoDB or Redis here
-        context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
+        #context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
 
 
         print("DEBUG - Stats after search:", stats)
@@ -351,9 +351,9 @@ def interactive_search():
         response, updated_stats = generate_rag_response(query, context_results, stats)
         print_statistics(updated_stats)
 
-        file_path = "src/stats/mongo.csv"
-        # file = "redis.csv"
-        # file = "chroma.csv"
+        # file_path = "src/stats/mongo.csv"
+        file_path = "src/stats/redis.csv"
+        file_path = "src/stats/chroma.csv"
         log_stats_to_csv(updated_stats, query, file_path)
 
 
