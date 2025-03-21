@@ -20,3 +20,18 @@ CHUNK_SIZE = 300 # should this be a list? go through different chunk sizes ?
 
 EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
 
+def get_redis_connection():
+    pass
+
+def clear_redis_db():
+    pass
+
+def create_vector_index():
+    pass
+
+def chunk():
+    pass
+
+def get_embedding():
+    pass
+
