@@ -137,7 +137,7 @@ def generate_rag_response(query, context_results):
         ]
     )
 
-    print(f"context_str: {context_str}")
+    print("Generating response...")
 
     # Construct prompt with context
     prompt = f"""You are a helpful AI assistant. 
