@@ -34,9 +34,7 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
-def search_embeddings_mongo(query, top_k=3):
-    pass
-'''
+
 def search_embeddings_chroma(query, top_k=3):
     query_embedding = get_embedding(query)
 
@@ -75,8 +73,6 @@ def search_embeddings_chroma(query, top_k=3):
     except Exception as e:
         print(f"Search error: {e}")
         return []
-'''
-'''
 
 def search_embeddings_redis(query, top_k=3):
 
@@ -125,7 +121,48 @@ def search_embeddings_redis(query, top_k=3):
         print(f"Search error: {e}")
         return []
 
-'''
+def search_embeddings_mongo(query, top_k=3):
+    query_embedding = get_embedding(query)
+
+    # Convert the query embedding to a numpy array
+    query_vector = np.array(query_embedding, dtype=np.float32)
+
+    try:
+        # Retrieve all documents from MongoDB collection
+        all_docs = collection.find()
+
+        # List to hold documents with their cosine similarity scores
+        scored_docs = []
+
+        for doc in all_docs:
+            # Extract embedding from the document
+            doc_embedding = np.array(doc['embedding'], dtype=np.float32)
+
+            # Compute the cosine similarity between the query and the document embedding
+            similarity = cosine_similarity(query_vector, doc_embedding)
+
+            # Append the document and its similarity score to the list
+            scored_docs.append({
+                'file': doc.get('file', 'Unknown file'),
+                'page': doc.get('page', 'Unknown page'),
+                'chunk': doc.get('chunk', 'Unknown chunk'),
+                'similarity': similarity
+            })
+
+        # Sort documents by similarity in descending order and get the top_k
+        top_results = sorted(scored_docs, key=lambda x: x['similarity'], reverse=True)[:top_k]
+
+        # Print results for debugging
+        for result in top_results:
+            print(f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}")
+
+        return top_results
+
+    except Exception as e:
+        print(f"Search error: {e}")
+        return []
+
+
 def generate_rag_response(query, context_results):
 
     # Prepare context string
@@ -159,6 +196,7 @@ Answer:"""
     return response["message"]["content"]
 
 
+
 def interactive_search():
     """Interactive search interface."""
     print("🔍 RAG Search Interface")
@@ -171,7 +209,7 @@ def interactive_search():
             break
 
         # Search for relevant embeddings
-        context_results = search_embeddings(query)
+        context_results = search_embeddings_mongo(query)
 
         # Generate RAG response
         response = generate_rag_response(query, context_results)
