@@ -1,0 +1,2 @@
+file,timestamp,query,database,query_time,generation_time,total_time,documents_searched,chunks_used
+search.py,2025-03-21 19:00:27,what is redis,mongo,0.11557316780090332,21.167036056518555,21.282609224319458,0,0

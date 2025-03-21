@@ -19,9 +19,11 @@ from redis.commands.search.field import VectorField, TextField
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # vectors dbs
-redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
-chroma_client = chromadb.HttpClient(host="localhost", port=8000)
-chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
+# redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
+
+# chroma_client = chromadb.HttpClient(host="localhost", port=6381)
+# chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
+
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
 collection = db["embeddings"]
@@ -340,20 +342,18 @@ def interactive_search():
             break
 
         # Search for relevant embeddings from the chosen database
-        context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
+        #context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
         #context_results, stats = search_embeddings_redis(query)  # or switch to MongoDB or Redis here
-        #context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
+        context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
 
+        print("Stats after search:", stats)
 
-        print("DEBUG - Stats after search:", stats)
-
-        # Generate RAG response
         response, updated_stats = generate_rag_response(query, context_results, stats)
         print_statistics(updated_stats)
 
-        # file_path = "src/stats/mongo.csv"
-        file_path = "src/stats/redis.csv"
-        file_path = "src/stats/chroma.csv"
+        file_path = "stats/mongo.csv"
+        # file_path = "stats/redis.csv"
+        # file_path = "stats/chroma.csv"
         log_stats_to_csv(updated_stats, query, file_path)
 
 
