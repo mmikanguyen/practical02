@@ -176,6 +176,33 @@ def process_directory(redis_client, directory_path):
         process_document(redis_client, pdf_file)
 
 
+def run_query(redis_client, query_text, k=3):
+    """Run a test query against the vector store"""
+    from redis.commands.search.query import Query
+
+    # Get embedding for query
+    embedding = get_embedding(query_text)
+    embedding_bytes = np.array(embedding, dtype=np.float32).tobytes()
+
+    # Create search query
+    q = (
+        Query(f"*=>[KNN {k} @embedding $vec AS score]")
+        .sort_by("score")
+        .return_fields("file", "page", "chunk_id", "text", "score")
+        .dialect(2)
+    )
+
+    # Execute search
+    results = redis_client.ft(INDEX_NAME).search(
+        q, query_params={"vec": embedding_bytes}
+    )
+
+    print(f"\nResults for query: '{query_text}'")
+    for doc in results.docs:
+        print(f"Document: {doc.file}, Page: {doc.page}, Chunk: {doc.chunk_id}")
+        print(f"Score: {doc.score}")
+        print(f"Text: {doc.text[:150]}...")
+        print("-" * 80)
 
 def main():
 
@@ -200,7 +227,11 @@ def main():
     process_directory(redis_client, data_dir)
 
     elapsed = time.time() - start_time
+    print(f"\nProcessing completed in {elapsed:.2f} seconds")
 
+
+    if args.test:
+        run_query(redis_client, args.test)
 
 if __name__ == "__main__":
     main()
