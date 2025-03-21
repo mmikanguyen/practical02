@@ -39,12 +39,12 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     return response["embedding"]
 
 
-def search_embeddings_chroma(query, top_k=3):
+def search_embeddings_chroma(query, top_k=3, db="chroma"):
     stats = {
         "documents_searched": 0,
         "chunks_used": 0,
         "query_time": 0,
-        "database_used": "chroma"  # Assuming ChromaDB is the default
+        "database_used": db
     }
 
     start_time = time.time()
@@ -94,94 +94,103 @@ def search_embeddings_chroma(query, top_k=3):
     return top_results, stats
 
 
-def search_embeddings_redis(query, top_k=3):
+def search_embeddings_redis(query, top_k=3, db="redis"):
+
+    stats = {
+        "query_time": 0,
+        "database_used": db
+    }
+
+    start_time = time.time()
 
     query_embedding = get_embedding(query)
 
     # Convert embedding to bytes for Redis search
     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
-    try:
-        # Construct the vector similarity search query
-        # Use a more standard RediSearch vector search syntax
-        # q = Query("*").sort_by("embedding", query_vector)
+    # Construct the vector similarity search query
+    # Use a more standard RediSearch vector search syntax
+    # q = Query("*").sort_by("embedding", query_vector)
 
-        q = (
-            Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-            .sort_by("vector_distance")
-            .return_fields("id", "file", "page", "chunk", "vector_distance")
-            .dialect(2)
+    q = (
+        Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
+        .sort_by("vector_distance")
+        .return_fields("id", "file", "page", "chunk", "vector_distance")
+        .dialect(2)
+    )
+
+    # Perform the search
+    results = redis_client.ft(INDEX_NAME).search(
+        q, query_params={"vec": query_vector}
+    )
+
+    # Transform results into the expected format
+    top_results = [
+        {
+            "file": result.file,
+            "page": result.page,
+            "chunk": result.chunk,
+            "similarity": result.vector_distance,
+        }
+        for result in results.docs
+    ][:top_k]
+
+    stats["query_time"] = time.time() - start_time
+
+    # Print results for debugging
+    for result in top_results:
+        print(
+            f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
         )
 
-        # Perform the search
-        results = redis_client.ft(INDEX_NAME).search(
-            q, query_params={"vec": query_vector}
-        )
-
-        # Transform results into the expected format
-        top_results = [
-            {
-                "file": result.file,
-                "page": result.page,
-                "chunk": result.chunk,
-                "similarity": result.vector_distance,
-            }
-            for result in results.docs
-        ][:top_k]
-
-        # Print results for debugging
-        for result in top_results:
-            print(
-                f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
-            )
-
-        return top_results
-
-    except Exception as e:
-        print(f"Search error: {e}")
-        return []
+    return top_results, stats
 
 
 def search_embeddings_mongo(query, top_k=3):
+
+    stats = {
+        "query_time": 0,
+        "database_used": db
+    }
+
+    start_time = time.time()
+
     query_embedding = get_embedding(query)
 
     # Convert the query embedding to a numpy array
     query_vector = np.array(query_embedding, dtype=np.float32)
 
-    try:
-        # Retrieve all documents from MongoDB collection
-        all_docs = collection.find()
+    # Retrieve all documents from MongoDB collection
+    all_docs = collection.find()
 
-        # List to hold documents with their cosine similarity scores
-        scored_docs = []
+    # List to hold documents with their cosine similarity scores
+    scored_docs = []
 
-        for doc in all_docs:
-            # Extract embedding from the document
-            doc_embedding = np.array(doc['embedding'], dtype=np.float32)
+    for doc in all_docs:
+        # Extract embedding from the document
+        doc_embedding = np.array(doc['embedding'], dtype=np.float32)
 
-            # Compute the cosine similarity between the query and the document embedding
-            similarity = cosine_similarity(query_vector, doc_embedding)
+        # Compute the cosine similarity between the query and the document embedding
+        similarity = cosine_similarity(query_vector, doc_embedding)
 
-            # Append the document and its similarity score to the list
-            scored_docs.append({
-                'file': doc.get('file', 'Unknown file'),
-                'page': doc.get('page', 'Unknown page'),
-                'chunk': doc.get('chunk', 'Unknown chunk'),
-                'similarity': similarity
-            })
+        # Append the document and its similarity score to the list
+        scored_docs.append({
+            'file': doc.get('file', 'Unknown file'),
+            'page': doc.get('page', 'Unknown page'),
+            'chunk': doc.get('chunk', 'Unknown chunk'),
+            'similarity': similarity
+        })
 
-        # Sort documents by similarity in descending order and get the top_k
-        top_results = sorted(scored_docs, key=lambda x: x['similarity'], reverse=True)[:top_k]
+    # Sort documents by similarity in descending order and get the top_k
+    top_results = sorted(scored_docs, key=lambda x: x['similarity'], reverse=True)[:top_k]
 
-        # Print results for debugging
-        for result in top_results:
-            print(f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}")
+    stats["query_time"] = time.time() - start_time
 
-        return top_results
+    # Print results for debugging
+    for result in top_results:
+        print(f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}")
 
-    except Exception as e:
-        print(f"Search error: {e}")
-        return []
+    return top_results, stats
 
 
 #def generate_rag_response(query, context_results):
