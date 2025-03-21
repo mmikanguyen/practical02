@@ -3,6 +3,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import redis
 import chromadb
+import time
 import json
 import numpy as np
 import pymongo
@@ -34,8 +35,19 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
+<<<<<<< HEAD
+=======
 
 def search_embeddings_chroma(query, top_k=3):
+    stats = {
+        "documents_searched": 0,
+        "chunks_used": 0,
+        "query_time": 0,
+        "database_used": "chroma"  # Assuming ChromaDB is the default
+    }
+
+    start_time = time.time()
+
     query_embedding = get_embedding(query)
 
     # Convert embedding to numpy array for ChromaDB search
@@ -48,6 +60,7 @@ def search_embeddings_chroma(query, top_k=3):
         )
 
         top_results = []
+        unique_docs = set()
 
         # Check if we have results
         if results and 'metadatas' in results and results['metadatas']:
@@ -68,11 +81,16 @@ def search_embeddings_chroma(query, top_k=3):
                 f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
             )
 
-        return top_results
+        return top_results, stats
 
     except Exception as e:
         print(f"Search error: {e}")
         return []
+<<<<<<< HEAD
+=======
+
+'''
+>>>>>>> 483d5954bb39c94735da4d1e6c1a66bc7803c5f4
 
 def search_embeddings_redis(query, top_k=3):
 
@@ -121,6 +139,7 @@ def search_embeddings_redis(query, top_k=3):
         print(f"Search error: {e}")
         return []
 
+<<<<<<< HEAD
 def search_embeddings_mongo(query, top_k=3):
     query_embedding = get_embedding(query)
 
@@ -164,6 +183,12 @@ def search_embeddings_mongo(query, top_k=3):
 
 
 def generate_rag_response(query, context_results):
+=======
+'''
+def generate_rag_response(query, context_results, stats=None):
+
+    gen_start_time = time.time()
+>>>>>>> 483d5954bb39c94735da4d1e6c1a66bc7803c5f4
 
     # Prepare context string
     context_str = "\n".join(
@@ -193,8 +218,24 @@ Answer:"""
         model="mistral:latest", messages=[{"role": "user", "content": prompt}]
     )
 
-    return response["message"]["content"]
+    if stats:
+        stats["generation_time"] = time.time() - gen_start_time
+        stats["total_time"] = stats["query_time"] + stats["generation_time"]
 
+    return response["message"]["content"], stats
+
+def print_statistics(stats):
+    """Print statistics about the search and generation process."""
+    print("\n--- Query Statistics ---")
+    print(f"Documents searched: {stats['documents_searched']}")
+    print(f"Chunks used: {stats['chunks_used']}")
+    print(f"Query time: {stats['query_time']:.4f} seconds")
+    if "generation_time" in stats:
+        print(f"Generation time: {stats['generation_time']:.4f} seconds")
+    if "total_time" in stats:
+        print(f"Total time: {stats['total_time']:.4f} seconds")
+    print("Database used:", stats.get("database_used", "chroma"))
+    print("------------------------")
 
 
 def interactive_search():
@@ -209,10 +250,15 @@ def interactive_search():
             break
 
         # Search for relevant embeddings
+<<<<<<< HEAD
         context_results = search_embeddings_mongo(query)
+=======
+        context_results, stats = search_embeddings_chroma(query)
+>>>>>>> 483d5954bb39c94735da4d1e6c1a66bc7803c5f4
 
         # Generate RAG response
-        response = generate_rag_response(query, context_results)
+        response, updated_stats = generate_rag_response(query, context_results)
+        print_statistics(updated_stats)
 
         print("\n--- Response ---")
         print(response)
