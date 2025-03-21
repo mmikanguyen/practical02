@@ -124,16 +124,31 @@ def search_embeddings_redis(query, top_k=3, db="redis"):
         q, query_params={"vec": query_vector}
     )
 
-    # Transform results into the expected format
-    top_results = [
-        {
-            "file": result.file,
-            "page": result.page,
-            "chunk": result.chunk,
-            "similarity": result.vector_distance,
-        }
-        for result in results.docs
-    ][:top_k]
+    # # Transform results into the expected format
+    # top_results = [
+    #     {
+    #         "file": result.file,
+    #         "page": result.page,
+    #         "chunk": result.chunk,
+    #         "similarity": result.vector_distance,
+    #     }
+    #     for result in results.docs
+    # ][:top_k]
+    top_results = []
+    unique_docs = set()
+
+    # Check if we have results
+    if results and 'metadatas' in results and results['metadatas']:
+        for i in range(len(results['metadatas'][0])):  # Iterate using index
+            metadata = results['metadatas'][0][i]
+            distance = results['distances'][0][i] if 'distances' in results else 0
+
+            top_results.append({
+                "file": metadata.get("file", "Unknown file"),
+                "page": metadata.get("page", "Unknown page"),
+                "chunk": metadata.get("chunk", "Unknown chunk"),
+                "similarity": 1 - distance,  # Convert distance to similarity
+            })
 
     stats["query_time"] = time.time() - start_time
 
@@ -146,7 +161,7 @@ def search_embeddings_redis(query, top_k=3, db="redis"):
     return top_results, stats
 
 
-def search_embeddings_mongo(query, top_k=3):
+def search_embeddings_mongo(query, top_k=3, db="mongo"):
 
     stats = {
         "query_time": 0,
@@ -264,7 +279,11 @@ def interactive_search():
             break
 
         # Search for relevant embeddings from the chosen database
-        context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
+        #context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
+        context_results, stats = search_embeddings_redis(query)  # or switch to MongoDB or Redis here
+        #context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
+
+
         print("DEBUG - Stats after search:", stats)
 
         # Generate RAG response
