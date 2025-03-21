@@ -44,11 +44,24 @@ def get_embedding():
 
 def main():
 
+    parser = argparse.ArgumentParser(description="Document ingestion system for vector search")
+    parser.add_argument("--data", type=str, default="../data", help="Directory containing PDF files")
+    parser.add_argument("--clear", action="store_true", help="Clear existing database before ingestion")
+    parser.add_argument("--test", type=str, help="Run a test query after ingestion")
+    args = parser.parse_args()
+
     redis_client = get_redis_connection()
 
     # time how long it takes to query
     start_time = time.time()
 
+    # clear db
+    if args.clear:
+        clear_redis_db(redis_client)
+        create_vector_index(redis_client)
+
+    data_dir = args.data
+    print(f"Processing documents from: {data_dir}")
 
     elapsed = time.time() - start_time
 
