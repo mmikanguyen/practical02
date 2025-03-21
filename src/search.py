@@ -10,6 +10,8 @@ import pymongo
 from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
+import datetime
+import csv
 from redis.commands.search.field import VectorField, TextField
 
 
@@ -282,6 +284,50 @@ def print_statistics(stats):
     print("------------------------")
 
 
+def log_stats_to_csv(stats, query, file_path="src/stats/mongo.csv"):
+    # need to align with ingest files !!
+
+    directory = os.path.dirname(file_path)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Created directory: {directory}")
+
+    fieldnames = [
+        'file',
+        'timestamp',
+        'query',
+        'database',
+        'query_time',
+        'generation_time',
+        'total_time',
+        'documents_searched',
+        'chunks_used'
+    ]
+
+    file_exists = os.path.isfile(file_path)
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    row = {
+        'file': "search.py",
+        'timestamp': timestamp,
+        'query': query,
+        'database': stats.get('database_used', 'unknown'),
+        'query_time': stats.get('query_time', 0),
+        'generation_time': stats.get('generation_time', 0),
+        'total_time': stats.get('total_time', 0),
+        'documents_searched': stats.get('documents_searched', 0),
+        'chunks_used': stats.get('chunks_used', 0)
+    }
+
+    with open(file_path, mode='a', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+
+    print(f"Stats logged to {file_path}")
+
 def interactive_search():
     """Interactive search interface."""
     print("🔍 RAG Search Interface")
@@ -305,6 +351,12 @@ def interactive_search():
         response, updated_stats = generate_rag_response(query, context_results, stats)
         print_statistics(updated_stats)
 
+        file_path = "src/stats/mongo.csv"
+        # file = "redis.csv"
+        # file = "chroma.csv"
+        log_stats_to_csv(updated_stats, query, file_path)
+
+
         print("\n--- Response ---")
         print(response)
 
@@ -312,4 +364,7 @@ def interactive_search():
 
 
 if __name__ == "__main__":
+
+    # add something here specifying which db to use?
+
     interactive_search()
