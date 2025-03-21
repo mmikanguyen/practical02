@@ -1,3 +1,6 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import redis
 import chromadb
 import json
@@ -7,12 +10,11 @@ import ollama
 from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
 
-
 # Initialize models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
-chroma_client = chromadb.HttpClient(host="localhost", port=8000)
-chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
+#chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+#chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
@@ -123,7 +125,7 @@ def generate_rag_response(query, context_results):
         ]
     )
 
-    print(f"context_str: {context_str}")
+    print(f"Generating response...")
 
     # Construct prompt with context
     prompt = f"""You are a helpful AI assistant. 

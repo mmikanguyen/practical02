@@ -5,7 +5,7 @@ import fitz
 import os
 
 
-db = chromadb.HttpClient(host="localhost", port=8000)
+db = chromadb.PersistentClient(path="./chroma_db")
 collection = db.get_or_create_collection(name="pdf_embeddings")
 
 VECTOR_DIM = 768
