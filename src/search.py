@@ -1,31 +1,40 @@
-import os
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-
 import redis
 import chromadb
 import json
 import numpy as np
+import pymongo
 from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
 
+
 # Initialize models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
-#chroma_client = chromadb.HttpClient(host="localhost", port=8000)
-#chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
+chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+db = client["embedding_db"]
+collection = db["embeddings"]
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
+def cosine_similarity(vec1, vec2):
+    """Calculate cosine similarity between two vectors."""
+    return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
-def search_embeddings(query, top_k=3):
+def search_embeddings_mongo(query, top_k=3):
+    pass
+'''
+def search_embeddings_chroma(query, top_k=3):
     query_embedding = get_embedding(query)
 
     # Convert embedding to numpy array for ChromaDB search
@@ -63,10 +72,10 @@ def search_embeddings(query, top_k=3):
     except Exception as e:
         print(f"Search error: {e}")
         return []
-
+'''
 '''
 
-def search_embeddings(query, top_k=3):
+def search_embeddings_redis(query, top_k=3):
 
     query_embedding = get_embedding(query)
 
@@ -125,7 +134,7 @@ def generate_rag_response(query, context_results):
         ]
     )
 
-    print(f"Generating response...")
+    print(f"context_str: {context_str}")
 
     # Construct prompt with context
     prompt = f"""You are a helpful AI assistant. 
