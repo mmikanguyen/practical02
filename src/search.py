@@ -186,8 +186,21 @@ def search_embeddings_mongo(query, top_k=3, db="mongo"):
     scored_docs = []
 
     for doc in all_docs:
-        # Extract embedding from the document
-        doc_embedding = np.array(doc['embedding'], dtype=np.float32)
+        if isinstance(doc.get('embedding'), bytes):
+            # Convert binary data to numpy array - adjust the shape as needed
+            doc_embedding = np.frombuffer(doc['embedding'], dtype=np.float32)
+        elif isinstance(doc.get('embedding'), list):
+            doc_embedding = np.array(doc['embedding'], dtype=np.float32)
+        else:
+            print(f"Skipping document with unknown embedding format: {type(doc.get('embedding'))}")
+            continue
+
+        # # Extract embedding from the document
+        # doc_embedding = np.array(doc['embedding'], dtype=np.float32)
+        if len(doc_embedding) != len(query_vector):
+            print(f"Skipping document with mismatched embedding dimension: {len(doc_embedding)} vs {len(query_vector)}")
+            continue
+
 
         # Compute the cosine similarity between the query and the document embedding
         similarity = cosine_similarity(query_vector, doc_embedding)
@@ -282,8 +295,8 @@ def interactive_search():
 
         # Search for relevant embeddings from the chosen database
         #context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
-        context_results, stats = search_embeddings_redis(query)  # or switch to MongoDB or Redis here
-        #context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
+        #context_results, stats = search_embeddings_redis(query)  # or switch to MongoDB or Redis here
+        context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
 
 
         print("DEBUG - Stats after search:", stats)
