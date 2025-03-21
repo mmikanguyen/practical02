@@ -7,6 +7,9 @@ import os
 import fitz
 import argparse
 import time
+from tqdm import tqdm
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 REDIS_HOST = "localhost"
 REDIS_PORT = 6380
@@ -18,6 +21,7 @@ DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
 CHUNK_SIZE = 300 # should this be a list? go through different chunk sizes ?
+CHUNK_OVERLAP = 50 # is this necessary
 
 EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
 
@@ -33,8 +37,28 @@ def clear_redis_db(redis_client):
     redis_client.flushdb()
     print("Database cleared")
 
-def create_vector_index():
-    pass
+def create_vector_index(redis_client):
+    """Create the vector search index in Redis"""
+    # Try to drop existing index
+    try:
+        redis_client.execute_command(f"FT.DROPINDEX {INDEX_NAME} DD")
+        print("Dropped existing index")
+    except redis.exceptions.ResponseError:
+        print("No existing index to drop")
+
+    # Create new index
+    index_cmd = f"""
+        FT.CREATE {INDEX_NAME} ON HASH PREFIX 1 {DOC_PREFIX}
+        SCHEMA 
+            file TEXT SORTABLE
+            page TEXT SORTABLE
+            chunk_id TEXT SORTABLE
+            text TEXT
+            embedding VECTOR HNSW 6 DIM {VECTOR_DIM} TYPE FLOAT32 DISTANCE_METRIC {DISTANCE_METRIC}
+        """
+
+    redis_client.execute_command(index_cmd)
+    print(f"Created vector index '{INDEX_NAME}'")
 
 def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, embedding):
         key = f"{DOC_PREFIX}{document_id}:p{page_num}:c{chunk_id}"
@@ -80,7 +104,7 @@ def extract_text_from_pdf(pdf_path):
         return []
 
 
-def chunk_text(text, chunk_size=CHUNK_SIZE):
+def split_text_into_chunks(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     words = text.split()
 
     if not words:
@@ -88,11 +112,69 @@ def chunk_text(text, chunk_size=CHUNK_SIZE):
 
     chunks = []
 
-    for i in range(0, len(words), chunk_size):
+    for i in range(0, len(words), chunk_size - overlap):
         chunk = " ".join(words[i:i + chunk_size])
         chunks.append(chunk)
 
     return chunks
+
+
+def process_document(redis_client, file_path):
+    """Process a single PDF file"""
+    file_name = Path(file_path).name
+    print(f"Processing: {file_name}")
+
+    # Extract text by page
+    pages = extract_text_from_pdf(file_path)
+
+    total_chunks = 0
+    total_chars = 0
+
+    # Process each page sequentially (no threading)
+    for page_num, text in pages:
+        print(f"  Processing page {page_num}...")
+
+        # Split text into chunks
+        chunks = split_text_into_chunks(text)
+
+        # Process each chunk
+        for chunk_id, chunk_text in enumerate(chunks):
+            # Skip empty chunks
+            if not chunk_text.strip():
+                continue
+
+            # Generate embedding
+            embedding = get_embedding(chunk_text)
+
+            # Store in vector database
+            store_document_chunk(
+                redis_client,
+                document_id=file_name,
+                page_num=page_num,
+                chunk_id=chunk_id,
+                text=chunk_text,
+                embedding=embedding
+            )
+
+            total_chars += len(chunk_text)
+            total_chunks += 1
+
+    print(f"Completed {file_name}: {len(pages)} pages, {total_chunks} chunks, {total_chars} characters")
+
+
+def process_directory(redis_client, directory_path):
+    pdf_files = list(Path(directory_path).glob("*.pdf"))
+
+    if not pdf_files:
+        print(f"No PDF files found in {directory_path}")
+        return
+
+    print(f"Found {len(pdf_files)} PDF files to process")
+
+    # Process each file
+    for pdf_file in pdf_files:
+        process_document(redis_client, pdf_file)
+
 
 
 def main():
@@ -115,6 +197,7 @@ def main():
 
     data_dir = args.data
     print(f"Processing documents from: {data_dir}")
+    process_directory(redis_client, data_dir)
 
     elapsed = time.time() - start_time
 
