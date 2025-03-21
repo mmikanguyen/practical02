@@ -56,6 +56,7 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
     return chunks
 
 
+# Process all PDF files in a given directory
 def process_pdfs(data_dir):
     start_time = time.time_ns()  # Start timing for the entire process
     for file_name in os.listdir(data_dir):
@@ -75,7 +76,7 @@ def process_pdfs(data_dir):
             print(f" -----> Processed {file_name}")
 
     elapsed_time = time.time_ns() - start_time  # End timing for the entire process
-    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} seconds.")
+    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} nanoseconds.")
 
 
 # Query ChromaDB
