@@ -45,8 +45,6 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
 def search_embeddings_chroma(query, top_k=3, db="chroma"):
     stats = {
-        "documents_searched": 0,
-        "chunks_used": 0,
         "query_time": 0,
         "database_used": db
     }
@@ -79,8 +77,6 @@ def search_embeddings_chroma(query, top_k=3, db="chroma"):
                 "similarity": 1 - distance,  # Convert distance to similarity
             })
 
-    stats["documents_searched"] = len(unique_docs)
-    stats["chunks_used"] = len(top_results)
     stats["query_time"] = time.time() - start_time
 
     # Print results for debugging
@@ -301,9 +297,7 @@ def log_stats_to_csv(stats, query, file_path):
         'database',
         'query_time',
         'generation_time',
-        'total_time',
-        'documents_searched',
-        'chunks_used'
+        'total_time'
     ]
 
     file_exists = os.path.isfile(file_path)
@@ -316,9 +310,7 @@ def log_stats_to_csv(stats, query, file_path):
         'database': stats.get('database_used', 'unknown'),
         'query_time': stats.get('query_time', 0),
         'generation_time': stats.get('generation_time', 0),
-        'total_time': stats.get('total_time', 0),
-        'documents_searched': stats.get('documents_searched', 0),
-        'chunks_used': stats.get('chunks_used', 0)
+        'total_time': stats.get('total_time', 0)
     }
 
     with open(file_path, mode='a', newline='') as file:
@@ -351,9 +343,9 @@ def interactive_search():
         response, updated_stats = generate_rag_response(query, context_results, stats)
         print_statistics(updated_stats)
 
-        file_path = "stats/mongo.csv"
-        # file_path = "stats/redis.csv"
-        # file_path = "stats/chroma.csv"
+        file_path = "stats/mongo_search.csv"
+        # file_path = "stats/redis_search.csv"
+        # file_path = "stats/chroma_search.csv"
         log_stats_to_csv(updated_stats, query, file_path)
 
 
@@ -364,7 +356,5 @@ def interactive_search():
 
 
 if __name__ == "__main__":
-
-    # add something here specifying which db to use?
 
     interactive_search()
