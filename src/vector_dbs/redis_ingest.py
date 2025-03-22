@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+from sentence_transformers import SentenceTransformer
+
+os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '600'
+SentenceTransformer("all-mpnet-base-v2")
 
 import ollama
 import redis
@@ -13,6 +19,7 @@ from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
 REDIS_HOST = "localhost"
 REDIS_PORT = 6380
 REDIS_DB = 0
@@ -25,7 +32,10 @@ DISTANCE_METRIC = "COSINE"
 CHUNK_SIZE = 300 # should this be a list? go through different chunk sizes ?
 CHUNK_OVERLAP = 50 # is this necessary
 
-EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
+# EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
+EMBEDDING_MODEL = "all-mpnet-base-v2"
+embedding_model = SentenceTransformer("all-mpnet-base-v2")
+
 
 def get_redis_connection():
     return redis.Redis(
@@ -76,9 +86,15 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
                 "embedding": embedding_bytes
             }
         )
-def get_embedding(text, model=EMBEDDING_MODEL):
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+
+# use for nomic_embed
+# def get_embedding(text, model=EMBEDDING_MODEL):
+#     response = ollama.embeddings(model=model, prompt=text)
+#     return response["embedding"]
+
+
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
 
 def extract_text_from_pdf(pdf_path):
     # strip stop words and punctuation??
@@ -209,7 +225,7 @@ def run_query(redis_client, query_text, k=3):
 
 def main():
     parser = argparse.ArgumentParser(description="Document ingestion system for vector search")
-    parser.add_argument("--data", type=str, default="../data", help="Directory containing PDF files")
+    parser.add_argument("--data", type=str, default="../../data", help="Directory containing PDF files")
     parser.add_argument("--clear", action="store_true", help="Clear existing database before ingestion")
     parser.add_argument("--test", type=str, help="Run a test query after ingestion")
     args = parser.parse_args()
@@ -235,7 +251,7 @@ def main():
     print(f"Total documents processed: {total_documents}")
     print(f"Total chunks processed: {total_chunks}")
 
-    stats_dir = "stats"
+    stats_dir = "..stats"
     os.makedirs(stats_dir, exist_ok=True)
 
     stats_path = os.path.join(stats_dir, "redis_processing.csv")
@@ -252,7 +268,10 @@ def main():
 
         # Append the new stats
         writer.writerow(
-            ["redis", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time, total_documents, total_chunks])
+            ["redis", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time, total_documents, total_chunks])
+
+
+
 
 main()
 
