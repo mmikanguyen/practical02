@@ -7,3 +7,4 @@ chroma_search.py,2025-03-22 15:27:27,What is disk-based indexing and why is it i
 chroma_search.py,2025-03-22 15:31:45,What is disk-based indexing and why is it important for database systems?  ,chroma,1.2053682804107666,53.871938705444336,55.0773069858551
 chroma_search.py,2025-03-22 15:36:30,"In the context of a relational database system, what is a transaction?  ",chroma,0.15326690673828125,273.366739988327,273.5200068950653
 chroma_search.py,2025-03-22 15:42:04,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,chroma,1.5156598091125488,308.92712807655334,310.4427878856659
+chroma_search.py,2025-03-22 16:44:36,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,chroma,0.6650381088256836,311.2266776561737,311.8917157649994
