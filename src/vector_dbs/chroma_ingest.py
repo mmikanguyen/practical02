@@ -66,12 +66,17 @@ def process_pdfs(data_dir):
 
     print(f"Found {len(pdf_files)} PDF files to process")
 
+    document_count = 0
+    chunk_count = 0
+
     for file_name in pdf_files:
         pdf_path = os.path.join(data_dir, file_name)
         text_by_page = extract_text_from_pdf(pdf_path)
+        document_count += 1
 
         for page_num, text in text_by_page:
             chunks = split_text_into_chunks(text)
+            chunk_count += len(chunks)
             for chunk_index, chunk in enumerate(chunks):
                 embedding = get_embedding(chunk)
                 store_embedding(file_name, page_num, chunk, embedding)
@@ -95,15 +100,16 @@ def process_pdfs(data_dir):
 
         # Write header only if the file is empty
         if file.tell() == 0:
-            writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
+            writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Documents Processed", "Chunks Processed"])
 
         # Append the new stats to the CSV
-        writer.writerow(["chroma", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time])
+        writer.writerow(["chroma", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
+    print(f"Documents processed: {document_count}")
+    print(f"Chunks processed: {chunk_count}")
     print(f"Exported stats to {stats_path}")
-
 
 def main():
     clear_chroma_store()
