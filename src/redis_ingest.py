@@ -7,6 +7,7 @@ import os
 import fitz
 import argparse
 import time
+import tracemalloc
 from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -197,7 +198,6 @@ def run_query(redis_client, query_text, k=3):
         print("-" * 80)
 
 def main():
-
     parser = argparse.ArgumentParser(description="Document ingestion system for vector search")
     parser.add_argument("--data", type=str, default="../data", help="Directory containing PDF files")
     parser.add_argument("--clear", action="store_true", help="Clear existing database before ingestion")
@@ -206,24 +206,20 @@ def main():
 
     redis_client = get_redis_connection()
 
-    # time how long it takes to query
     start_time = time.time()
+    tracemalloc.start()  # Start tracking memory
 
-    # clear db
     if args.clear:
         clear_redis_db(redis_client)
         create_vector_index(redis_client)
 
-    data_dir = args.data
-    print(f"Processing documents from: {data_dir}")
-    process_directory(redis_client, data_dir)
+    print(f"Processing documents from: {args.data}")
+    process_directory(redis_client, args.data)
 
     elapsed = time.time() - start_time
+    current_memory, peak_memory = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
     print(f"\nProcessing completed in {elapsed:.2f} seconds")
-
-
-    if args.test:
-        run_query(redis_client, args.test)
-
-if __name__ == "__main__":
-    main()
+    print(f"Peak Memory Usage: {peak_memory / 1024 / 1024:.2f} MB")
+main()

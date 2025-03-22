@@ -7,7 +7,8 @@ import numpy as np
 import fitz
 import os
 import time
-import psutil  # Import psutil to monitor system memory usage
+import tracemalloc
+import psutil
 
 
 chroma_client = chromadb.HttpClient(host="localhost", port=8000)
@@ -64,30 +65,34 @@ def track_memory_usage():
     return memory_info.percent  # Returns memory usage as a percentage
 
 def process_pdfs(data_dir):
-    start_time = time.time()  # Start timing for the entire process
-    for file_name in os.listdir(data_dir):
-        if file_name.endswith(".pdf"):
-            pdf_path = os.path.join(data_dir, file_name)
-            text_by_page = extract_text_from_pdf(pdf_path)
-            for page_num, text in text_by_page:
-                chunks = split_text_into_chunks(text)
-                for chunk_index, chunk in enumerate(chunks):
-                    embedding = get_embedding(chunk)
-                    store_embedding(
-                        file=file_name,
-                        page=str(page_num),
-                        chunk=str(chunk),
-                        embedding=embedding,
-                    )
-            print(f" -----> Processed {file_name}")
+    start_time = time.time()
+    tracemalloc.start()
 
-    elapsed_time = time.time() - start_time  # End timing for the entire process
-    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} seconds.")
+    pdf_files = [f for f in os.listdir(data_dir) if f.endswith(".pdf")]
+    if not pdf_files:
+        print(f"No PDF files found in {data_dir}")
+        return
 
-    # Track memory usage after processing all PDFs
-    memory_usage = track_memory_usage()
-    print(f"Memory usage after processing all PDFs: {memory_usage}%")
+    print(f"Found {len(pdf_files)} PDF files to process")
 
+    for file_name in pdf_files:
+        pdf_path = os.path.join(data_dir, file_name)
+        text_by_page = extract_text_from_pdf(pdf_path)
+
+        for page_num, text in text_by_page:
+            chunks = split_text_into_chunks(text)
+            for chunk_index, chunk in enumerate(chunks):
+                embedding = get_embedding(chunk)
+                store_embedding(file_name, page_num, chunk, embedding)
+
+        print(f"Processed {file_name}")
+
+    elapsed_time = time.time() - start_time
+    current_memory, peak_memory = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
+    print(f"Total processing time: {elapsed_time:.2f}s")
+    print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
 
 
 

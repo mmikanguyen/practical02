@@ -3,90 +3,100 @@ import pymongo
 import numpy as np
 import os
 import fitz
-from bson.binary import Binary
 import time
 import psutil
+import tracemalloc
+from bson.binary import Binary
 
+# MongoDB connection
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
 collection = db["embeddings"]
+
+# Embedding model and vector dimension
 VECTOR_DIM = 768
 
+
+# Clear MongoDB collection
 def clear_mongo_collection():
     print("Clearing existing MongoDB collection...")
     collection.delete_many({})
     print("MongoDB collection cleared.")
 
+
+# Get text embedding
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
-def store_embedding(file: str, page: str, chunk: str, embedding: list):
+
+# Store embedding in MongoDB
+def store_embedding(file: str, page: int, chunk: str, embedding: list):
     document = {
         "file": file,
         "page": page,
         "chunk": chunk,
-        "embedding": Binary(np.array(embedding, dtype=np.float32).tobytes())  # Store as Binary
+        "embedding": Binary(np.array(embedding, dtype=np.float32).tobytes())
     }
     collection.insert_one(document)
-    print(f"Stored embedding for: {chunk}")
+    print(f"Stored embedding for page {page}, chunk: {chunk[:30]}...")
 
 
-# Extract the text from a PDF by page
+# Extract text from PDF
 def extract_text_from_pdf(pdf_path):
-    """Extract text from a PDF file."""
     doc = fitz.open(pdf_path)
-    text_by_page = []
-    for page_num, page in enumerate(doc):
-        text_by_page.append((page_num, page.get_text()))
-    return text_by_page
+    return [(page.number, page.get_text()) for page in doc]
 
 
-# Split the text into chunks with overlap
+# Split text into chunks with overlap
 def split_text_into_chunks(text, chunk_size=300, overlap=50):
-    """Split text into chunks of approximately chunk_size words with overlap."""
     words = text.split()
-    chunks = []
-    for i in range(0, len(words), chunk_size - overlap):
-        chunk = " ".join(words[i: i + chunk_size])
-        chunks.append(chunk)
-    return chunks
+    return [" ".join(words[i: i + chunk_size]) for i in range(0, len(words), chunk_size - overlap)]
 
 
 # Track memory usage
 def track_memory_usage():
-    memory_info = psutil.virtual_memory()
-    return memory_info.percent  # Returns memory usage as a percentage
+    return psutil.virtual_memory().percent
 
+
+# Process PDFs in a directory
 def process_pdfs(data_dir):
-    start_time = time.time()  # Start timing for the entire process
-    for file_name in os.listdir(data_dir):
-        if file_name.endswith(".pdf"):
-            pdf_path = os.path.join(data_dir, file_name)
-            text_by_page = extract_text_from_pdf(pdf_path)
-            for page_num, text in text_by_page:
-                chunks = split_text_into_chunks(text)
-                for chunk_index, chunk in enumerate(chunks):
-                    embedding = get_embedding(chunk)
-                    store_embedding(
-                        file=file_name,
-                        page=str(page_num),
-                        chunk=str(chunk),
-                        embedding=embedding,
-                    )
-            print(f" -----> Processed {file_name}")
+    start_time = time.time()
+    tracemalloc.start()
 
-    elapsed_time = time.time() - start_time  # End timing for the entire process
-    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} seconds.")
+    pdf_files = [f for f in os.listdir(data_dir) if f.endswith(".pdf")]
+    if not pdf_files:
+        print(f"No PDF files found in {data_dir}")
+        return
 
-    # Track memory usage after processing all PDFs
-    memory_usage = track_memory_usage()
-    print(f"Memory usage after processing all PDFs: {memory_usage}%")
+    print(f"Found {len(pdf_files)} PDF files to process")
+
+    for file_name in pdf_files:
+        pdf_path = os.path.join(data_dir, file_name)
+        text_by_page = extract_text_from_pdf(pdf_path)
+
+        for page_num, text in text_by_page:
+            chunks = split_text_into_chunks(text)
+            for chunk_index, chunk in enumerate(chunks):
+                embedding = get_embedding(chunk)
+                store_embedding(file_name, page_num, chunk, embedding)
+
+        print(f"Processed {file_name}")
+
+    elapsed_time = time.time() - start_time
+    current_memory, peak_memory = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
+    print(f"Total processing time: {elapsed_time:.2f}s")
+    print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
 
 
+# Main function
 def main():
     clear_mongo_collection()
     process_pdfs("../../data/")
-    print("\n---Done processing PDFs---\n")
+    print("\n--- Done processing PDFs ---\n")
+
+
 if __name__ == "__main__":
     main()
