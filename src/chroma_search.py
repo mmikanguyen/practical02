@@ -18,7 +18,7 @@ from redis.commands.search.field import VectorField, TextField
 # Embedding models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-chroma_client = chromadb.HttpClient(host="localhost", port=6381)
+chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
 
 
@@ -45,21 +45,24 @@ def search_embeddings_chroma(query, top_k=3, db="chroma"):
 
     start_time = time.time()
 
+    # Get and validate embedding
     query_embedding = get_embedding(query)
+    if not query_embedding:
+        raise ValueError("Received empty embedding for query")
 
-    # Convert embedding to numpy array for ChromaDB search
     query_vector = np.array(query_embedding, dtype=np.float32)
+
     # Perform the search on ChromaDB
     results = chroma_collection.query(
-        query_embeddings=[query_vector.tolist()],  # Convert to list for ChromaDB compatibility
+        query_embeddings=[query_vector.tolist()],
         n_results=top_k,
     )
 
-    top_results = []
-    unique_docs = set()
+    # Debugging: print the results structure
+    print("Chroma query results:", results)
 
-    # Check if we have results
-    if results and 'metadatas' in results and results['metadatas']:
+    top_results = []
+    if 'metadatas' in results and results['metadatas']:
         for i in range(len(results['metadatas'][0])):  # Iterate using index
             metadata = results['metadatas'][0][i]
             distance = results['distances'][0][i] if 'distances' in results else 0
@@ -70,20 +73,10 @@ def search_embeddings_chroma(query, top_k=3, db="chroma"):
                 "chunk": metadata.get("chunk", "Unknown chunk"),
                 "similarity": 1 - distance,  # Convert distance to similarity
             })
+    else:
+        print("No valid metadata found in results")
 
     stats["query_time"] = time.time() - start_time
-
-    # Print results for debugging
-    for result in top_results:
-        print(
-            f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
-        )
-
-    # Print results for debugging
-    for result in top_results:
-        print(
-            f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
-        )
 
     return top_results, stats
 

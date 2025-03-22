@@ -8,10 +8,10 @@ import chromadb
 import ollama
 
 # Anna's port
-chroma_client = chromadb.HttpClient(host="localhost", port=6381)
+#chroma_client = chromadb.HttpClient(host="localhost", port=6381)
 
 # Mika's port
-# chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 
 collection = chroma_client.get_or_create_collection(name="embeddings")
 VECTOR_DIM = 768
@@ -93,7 +93,7 @@ def process_pdfs(data_dir):
     tracemalloc.stop()
 
     # Ensure stats directory exists at the expected location
-    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "stats"))
+    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "stats"))
     if not os.path.exists(stats_dir):
         print(f"Error: Stats directory not found at {stats_dir}. Please create it manually.")
         return  # Exit the function if the folder doesn't exist
@@ -118,7 +118,7 @@ def process_pdfs(data_dir):
 
 def main():
     clear_chroma_store()
-    process_pdfs("../../data/")
+    process_pdfs("../data/")
     print("\n---Done processing PDFs---\n")
 
 

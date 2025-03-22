@@ -1,7 +1,7 @@
 import subprocess
 
 # List of file paths to execute
-ingest_files = ['chroma_ingest.py', 'redis_ingest.py', 'mongo_ingest.py']
+ingest_files = ['vector_dbs/chroma_ingest.py', 'vector_dbs/redis_ingest.py', 'vector_dbs/mongo_ingest.py']
 search_files = ['chroma_search.py', 'redis_search.py', 'mongo_search.py']
 
 for i in range(len(ingest_files)):
