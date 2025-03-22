@@ -1,6 +1,3 @@
-import os
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-
 import ollama
 import pymongo
 import numpy as np
@@ -11,8 +8,6 @@ import psutil
 import tracemalloc
 import csv
 from bson.binary import Binary
-from sentence_transformers import SentenceTransformer
-
 
 # MongoDB connection
 client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -30,13 +25,11 @@ def clear_mongo_collection():
     print("MongoDB collection cleared.")
 
 
-# nomic embedding
-# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-#     response = ollama.embeddings(model=model, prompt=text)
-#     return response["embedding"]
+# Get text embedding
+def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+    response = ollama.embeddings(model=model, prompt=text)
+    return response["embedding"]
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
-    return model.encode(text).tolist()
 
 # Store embedding in MongoDB
 def store_embedding(file: str, page: int, chunk: str, embedding: list):
@@ -101,7 +94,7 @@ def process_pdfs(data_dir):
     tracemalloc.stop()
 
     # Ensure stats directory exists at the expected location
-    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..stats"))
+    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "stats"))
     if not os.path.exists(stats_dir):
         print(f"Error: Stats directory not found at {stats_dir}. Please create it manually.")
         return  # Exit the function if the folder doesn't exist
@@ -116,9 +109,7 @@ def process_pdfs(data_dir):
             writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Documents Processed", "Chunks Processed"])
 
         # Append the new stats to the CSV
-        # writer.writerow(["mongo", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
-        writer.writerow(["mongo", "all-MiniLM-L6-v2", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
-
+        writer.writerow(["mongo", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
@@ -130,7 +121,7 @@ def process_pdfs(data_dir):
 # Main function
 def main():
     clear_mongo_collection()
-    process_pdfs("../../data/")
+    process_pdfs("../data/")
     print("\n--- Done processing PDFs ---\n")
 
 
