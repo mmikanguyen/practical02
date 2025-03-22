@@ -230,7 +230,7 @@ def main():
     current_memory, peak_memory = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
-    print(f"\nProcessing completed in {elapsed:.2f} seconds")
+    print(f"\nProcessing completed in {elapsed_time:.2f} seconds")
     print(f"Peak Memory Usage: {peak_memory / 1024 / 1024:.2f} MB")
     print(f"Total documents processed: {total_documents}")
     print(f"Total chunks processed: {total_chunks}")
