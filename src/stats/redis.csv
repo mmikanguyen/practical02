@@ -1,2 +1,0 @@
-file,timestamp,query,database,query_time,generation_time,total_time,documents_searched,chunks_used
-search.py,2025-03-21 18:54:48,what is redis,redis,1.0127601623535156,17.343199968338013,18.35596013069153,0,0

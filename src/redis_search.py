@@ -18,15 +18,8 @@ from redis.commands.search.field import VectorField, TextField
 # Embedding models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# vectors dbs
-# redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
+redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
-# chroma_client = chromadb.HttpClient(host="localhost", port=6381)
-# chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
-
-client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = client["embedding_db"]
-collection = db["embeddings"]
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
@@ -41,57 +34,6 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
-
-
-def search_embeddings_chroma(query, top_k=3, db="chroma"):
-    stats = {
-        "query_time": 0,
-        "database_used": db
-    }
-
-    start_time = time.time()
-
-    query_embedding = get_embedding(query)
-
-    # Convert embedding to numpy array for ChromaDB search
-    query_vector = np.array(query_embedding, dtype=np.float32)
-    # Perform the search on ChromaDB
-    results = chroma_collection.query(
-        query_embeddings=[query_vector.tolist()],  # Convert to list for ChromaDB compatibility
-        n_results=top_k,
-    )
-
-    top_results = []
-    unique_docs = set()
-
-    # Check if we have results
-    if results and 'metadatas' in results and results['metadatas']:
-        for i in range(len(results['metadatas'][0])):  # Iterate using index
-            metadata = results['metadatas'][0][i]
-            distance = results['distances'][0][i] if 'distances' in results else 0
-
-            top_results.append({
-                "file": metadata.get("file", "Unknown file"),
-                "page": metadata.get("page", "Unknown page"),
-                "chunk": metadata.get("chunk", "Unknown chunk"),
-                "similarity": 1 - distance,  # Convert distance to similarity
-            })
-
-    stats["query_time"] = time.time() - start_time
-
-    # Print results for debugging
-    for result in top_results:
-        print(
-            f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
-        )
-
-    # Print results for debugging
-    for result in top_results:
-        print(
-            f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}"
-        )
-
-    return top_results, stats
 
 
 def search_embeddings_redis(query, top_k=3, db="redis"):
@@ -163,70 +105,6 @@ def search_embeddings_redis(query, top_k=3, db="redis"):
         )
 
     return top_results, stats
-
-
-def search_embeddings_mongo(query, top_k=3, db="mongo"):
-
-    stats = {
-        "query_time": 0,
-        "database_used": db
-    }
-
-    start_time = time.time()
-
-    query_embedding = get_embedding(query)
-
-    # Convert the query embedding to a numpy array
-    query_vector = np.array(query_embedding, dtype=np.float32)
-
-    # Retrieve all documents from MongoDB collection
-    all_docs = collection.find()
-
-    # List to hold documents with their cosine similarity scores
-    scored_docs = []
-
-    for doc in all_docs:
-        if isinstance(doc.get('embedding'), bytes):
-            # Convert binary data to numpy array - adjust the shape as needed
-            doc_embedding = np.frombuffer(doc['embedding'], dtype=np.float32)
-        elif isinstance(doc.get('embedding'), list):
-            doc_embedding = np.array(doc['embedding'], dtype=np.float32)
-        else:
-            print(f"Skipping document with unknown embedding format: {type(doc.get('embedding'))}")
-            continue
-
-        # # Extract embedding from the document
-        # doc_embedding = np.array(doc['embedding'], dtype=np.float32)
-        if len(doc_embedding) != len(query_vector):
-            print(f"Skipping document with mismatched embedding dimension: {len(doc_embedding)} vs {len(query_vector)}")
-            continue
-
-
-        # Compute the cosine similarity between the query and the document embedding
-        similarity = cosine_similarity(query_vector, doc_embedding)
-
-        # Append the document and its similarity score to the list
-        scored_docs.append({
-            'file': doc.get('file', 'Unknown file'),
-            'page': doc.get('page', 'Unknown page'),
-            'chunk': doc.get('chunk', 'Unknown chunk'),
-            'similarity': similarity
-        })
-
-    # Sort documents by similarity in descending order and get the top_k
-    top_results = sorted(scored_docs, key=lambda x: x['similarity'], reverse=True)[:top_k]
-
-    stats["query_time"] = time.time() - start_time
-
-    # Print results for debugging
-    for result in top_results:
-        print(f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}, Similarity: {result['similarity']:.2f}")
-
-    return top_results, stats
-
-
-#def generate_rag_response(query, context_results):
-
 
 def generate_rag_response(query, context_results, stats=None):
 
@@ -304,7 +182,7 @@ def log_stats_to_csv(stats, query, file_path):
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = {
-        'file': "search.py",
+        'file': "redis_search.py",
         'timestamp': timestamp,
         'query': query,
         'database': stats.get('database_used', 'unknown'),
@@ -334,18 +212,14 @@ def interactive_search():
             break
 
         # Search for relevant embeddings from the chosen database
-        #context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
-        #context_results, stats = search_embeddings_redis(query)  # or switch to MongoDB or Redis here
-        context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
+        context_results, stats = search_embeddings_redis(query)
 
         print("Stats after search:", stats)
 
         response, updated_stats = generate_rag_response(query, context_results, stats)
         print_statistics(updated_stats)
 
-        file_path = "stats/mongo_search.csv"
-        # file_path = "stats/redis_search.csv"
-        # file_path = "stats/chroma_search.csv"
+        file_path = "stats/redis_search.csv"
         log_stats_to_csv(updated_stats, query, file_path)
 
 

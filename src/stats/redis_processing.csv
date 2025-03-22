@@ -1,2 +1,2 @@
-Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s),Total Documents,Total Chunks
-redis,nomic-embed-text,0.9465827941894531,55.13615131378174,14,167
+Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s)
+redis,nomic-embed-text,0.9466180801391602,63.033106565475464
