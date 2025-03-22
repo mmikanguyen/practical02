@@ -5,6 +5,7 @@ import os
 import fitz
 from bson.binary import Binary
 import time
+import psutil
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
@@ -52,9 +53,13 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
     return chunks
 
 
-# Process all PDF files in a given directory
+# Track memory usage
+def track_memory_usage():
+    memory_info = psutil.virtual_memory()
+    return memory_info.percent  # Returns memory usage as a percentage
+
 def process_pdfs(data_dir):
-    start_time = time.time_ns()  # Start timing for the entire process
+    start_time = time.time()  # Start timing for the entire process
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".pdf"):
             pdf_path = os.path.join(data_dir, file_name)
@@ -71,8 +76,12 @@ def process_pdfs(data_dir):
                     )
             print(f" -----> Processed {file_name}")
 
-    elapsed_time = time.time_ns() - start_time  # End timing for the entire process
-    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} nanoseconds.")
+    elapsed_time = time.time() - start_time  # End timing for the entire process
+    print(f"Total time taken for processing PDFs: {elapsed_time:.2f} seconds.")
+
+    # Track memory usage after processing all PDFs
+    memory_usage = track_memory_usage()
+    print(f"Memory usage after processing all PDFs: {memory_usage}%")
 
 
 def main():
