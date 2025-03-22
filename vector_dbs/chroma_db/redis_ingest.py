@@ -112,7 +112,6 @@ def split_text_into_chunks(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
 
     return chunks
 
-
 def process_document(redis_client, file_path):
     """Process a single PDF file"""
     file_name = Path(file_path).name
@@ -154,6 +153,7 @@ def process_document(redis_client, file_path):
             total_chunks += 1
 
     print(f"Completed {file_name}: {len(pages)} pages, {total_chunks} chunks, {total_chars} characters")
+    return total_chunks, len(pages)  # Return chunk and page count for this document
 
 
 def process_directory(redis_client, directory_path):
@@ -161,13 +161,21 @@ def process_directory(redis_client, directory_path):
 
     if not pdf_files:
         print(f"No PDF files found in {directory_path}")
-        return
+        return 0, 0  # Return 0 if no files found
 
     print(f"Found {len(pdf_files)} PDF files to process")
 
+    total_documents = 0
+    total_chunks = 0
+
     # Process each file
     for pdf_file in pdf_files:
-        process_document(redis_client, pdf_file)
+        file_chunks, file_pages = process_document(redis_client, pdf_file)
+        total_documents += 1
+        total_chunks += file_chunks
+
+    return total_documents, total_chunks
+
 
 
 def run_query(redis_client, query_text, k=3):
@@ -198,6 +206,7 @@ def run_query(redis_client, query_text, k=3):
         print(f"Text: {doc.text[:150]}...")
         print("-" * 80)
 
+
 def main():
     parser = argparse.ArgumentParser(description="Document ingestion system for vector search")
     parser.add_argument("--data", type=str, default="../data", help="Directory containing PDF files")
@@ -215,25 +224,36 @@ def main():
         create_vector_index(redis_client)
 
     print(f"Processing documents from: {args.data}")
-    process_directory(redis_client, args.data)
+    total_documents, total_chunks = process_directory(redis_client, args.data)
 
-    elapsed = time.time() - start_time
+    elapsed_time = time.time() - start_time
     current_memory, peak_memory = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
     print(f"\nProcessing completed in {elapsed:.2f} seconds")
     print(f"Peak Memory Usage: {peak_memory / 1024 / 1024:.2f} MB")
+    print(f"Total documents processed: {total_documents}")
+    print(f"Total chunks processed: {total_chunks}")
 
-    # Ensure stats directory exists
-    stats_dir = "../../src/stats"
+    stats_dir = "stats"
     os.makedirs(stats_dir, exist_ok=True)
 
     stats_path = os.path.join(stats_dir, "redis_processing.csv")
 
-    with open(stats_path, mode='w', newline='') as file:
+    # Open the CSV file in append mode
+    with open(stats_path, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
-        writer.writerow(["redis", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed])
 
+        # If the file is empty (i.e., no header row), write the header
+        if file.tell() == 0:  # Check if file is empty
+            writer.writerow(
+                ["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Total Documents",
+                 "Total Chunks"])
+
+        # Append the new stats
+        writer.writerow(
+            ["redis", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time, total_documents, total_chunks])
 
 main()
+
+

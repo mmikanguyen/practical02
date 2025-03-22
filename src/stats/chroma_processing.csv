@@ -1,3 +1,3 @@
-Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s)
-ChromaDB,nomic-embed-text,1.0423336029052734,81.60203003883362
-
+Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s),Total Documents,Total Chunks
+chroma,nomic-embed-text,1.0592880249023438,70.22203755378723,14,167
+chroma,nomic-embed-text,1.0806894302368164,74.10303521156311,14,167

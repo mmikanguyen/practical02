@@ -1,2 +1,2 @@
 Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s)
-redis,nomic-embed-text,0.8280162811279297,9.259315013885498
+redis,nomic-embed-text,0.9466180801391602,63.033106565475464
