@@ -226,7 +226,7 @@ def main():
     print(f"Processing documents from: {args.data}")
     total_documents, total_chunks = process_directory(redis_client, args.data)
 
-    elapsed = time.time() - start_time
+    elapsed_time = time.time() - start_time
     current_memory, peak_memory = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
