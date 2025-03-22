@@ -1,3 +1,6 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import ollama
 import pymongo
 import numpy as np
@@ -8,6 +11,8 @@ import psutil
 import tracemalloc
 import csv
 from bson.binary import Binary
+from sentence_transformers import SentenceTransformer
+
 
 # MongoDB connection
 client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -16,6 +21,7 @@ collection = db["embeddings"]
 
 # Embedding model and vector dimension
 VECTOR_DIM = 768
+EMBEDDING_MODEL = "all-mpnet-base-v2"
 
 
 # Clear MongoDB collection
@@ -26,9 +32,11 @@ def clear_mongo_collection():
 
 
 # Get text embedding
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+#     response = ollama.embeddings(model=model, prompt=text)
+#     return response["embedding"]
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
 
 
 # Store embedding in MongoDB
@@ -109,7 +117,7 @@ def process_pdfs(data_dir):
             writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Documents Processed", "Chunks Processed"])
 
         # Append the new stats to the CSV
-        writer.writerow(["mongo", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
+        writer.writerow(["mongo", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")

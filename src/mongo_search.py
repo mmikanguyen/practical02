@@ -12,7 +12,7 @@ from sentence_transformers import SentenceTransformer
 
 
 # Embedding models
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+embedding_model = SentenceTransformer("all-mpnet-base-v2")
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
@@ -32,7 +32,7 @@ def cosine_similarity(vec1, vec2):
 #     response = ollama.embeddings(model=model, prompt=text)
 #     return response["embedding"]
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
     return model.encode(text).tolist()
 
 def search_embeddings_mongo(query, top_k=3, db="mongo"):
