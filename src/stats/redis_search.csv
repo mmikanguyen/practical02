@@ -1,2 +1,14 @@
 file,timestamp,query,database,query_time,generation_time,total_time
 redis_search.py,2025-03-22 14:42:28,what is redis,redis,0.21140789985656738,20.147239923477173,20.35864782333374
+redis_search.py,2025-03-22 15:35:23,"What are the core stages of the MongoDB aggregation pipeline, and how can they be combined for complex data processing?",redis,1.0507149696350098,27.91853380203247,28.96924877166748
+redis_search.py,2025-03-22 15:39:03,"What are the core stages of the MongoDB aggregation pipeline, and how can they be combined for complex data processing?",redis,0.4789249897003174,45.3182852268219,45.79721021652222
+redis_search.py,2025-03-22 15:44:32,"What are the core stages of the MongoDB aggregation pipeline, and how can they be combined for complex data processing?",redis,0.4790520668029785,58.72059392929077,59.19964599609375
+redis_search.py,2025-03-22 15:44:48,,redis,1.0877859592437744,14.140764951705933,15.228550910949707
+redis_search.py,2025-03-22 15:44:55,,redis,0.7406542301177979,6.208830118179321,6.949484348297119
+redis_search.py,2025-03-22 15:46:04,"How does Neo4j leverage the Cypher query language to handle graph-based data, and what are its advantages over SQL for connected data?",redis,0.7314698696136475,37.525206089019775,38.25667595863342
+redis_search.py,2025-03-22 15:46:22,,redis,0.6425669193267822,17.056548833847046,17.699115753173828
+redis_search.py,2025-03-22 15:46:35,,redis,0.6384801864624023,12.20088791847229,12.839368104934692
+redis_search.py,2025-03-22 15:48:39,"What are the core stages of the MongoDB aggregation pipeline, and how can they be combined for complex data processing?",redis,0.036962032318115234,32.79601693153381,32.83297896385193
+redis_search.py,2025-03-22 15:50:45,"How does Neo4j leverage the Cypher query language to handle graph-based data, and what are its advantages over SQL for connected data?",redis,0.04671001434326172,29.195422887802124,29.242132902145386
+redis_search.py,2025-03-22 15:53:14,Explain the role of replication in distributed databases and the differences between synchronous and asynchronous replication.,redis,0.04079484939575195,28.404878854751587,28.44567370414734
+redis_search.py,2025-03-22 15:53:58,"What are the core stages of the MongoDB aggregation pipeline, and how can they be combined for complex data processing?",redis,0.03815484046936035,27.107823848724365,27.145978689193726

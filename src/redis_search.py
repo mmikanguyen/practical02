@@ -30,14 +30,35 @@ def cosine_similarity(vec1, vec2):
     """Calculate cosine similarity between two vectors."""
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
+# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+#     #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
+#     response = ollama.embeddings(model=model, prompt=text)
+#     return response["embedding"]
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+    try:
+        response = ollama.embeddings(model=model, prompt=text)
+        embedding = response["embedding"]
+
+        # Verify embedding dimension
+        if len(embedding) == 0:
+            print("Warning: Received empty embedding vector")
+            # Return zero vector of expected dimension as fallback
+            return [0.0] * VECTOR_DIM
+
+        if len(embedding) != VECTOR_DIM:
+            print(f"Warning: Embedding dimension mismatch. Got {len(embedding)}, expected {VECTOR_DIM}")
+            # You could pad or truncate the vector here if needed
+            # For now, we'll raise an exception to make the issue clear
+            raise ValueError(f"Embedding dimension mismatch: got {len(embedding)}, expected {VECTOR_DIM}")
+
+        return embedding
+    except Exception as e:
+        print(f"Error generating embedding: {e}")
+        # Return zero vector as fallback
+        return [0.0] * VECTOR_DIM
 
 
 def search_embeddings_redis(query, top_k=3, db="redis"):
-
     stats = {
         "query_time": 0,
         "database_used": db
@@ -45,19 +66,20 @@ def search_embeddings_redis(query, top_k=3, db="redis"):
 
     start_time = time.time()
 
+    # Make sure to use the same model that was used during ingestion
     query_embedding = get_embedding(query)
+
+    # Add debug info
+    print(f"Query embedding length: {len(query_embedding)}")
 
     # Convert embedding to bytes for Redis search
     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
-    # Construct the vector similarity search query
-    # Use a more standard RediSearch vector search syntax
-    # q = Query("*").sort_by("embedding", query_vector)
-
+    # Use the same query structure as before
     q = (
         Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
         .sort_by("vector_distance")
-        .return_fields("id", "file", "page", "chunk", "vector_distance")
+        .return_fields("file", "page", "chunk_id", "vector_distance")
         .dialect(2)
     )
 
@@ -65,17 +87,35 @@ def search_embeddings_redis(query, top_k=3, db="redis"):
     results = redis_client.ft(INDEX_NAME).search(
         q, query_params={"vec": query_vector}
     )
+#
+#     stats = {
+#         "query_time": 0,
+#         "database_used": db
+#     }
+#
+#     start_time = time.time()
+#
+#     query_embedding = get_embedding(query)
+#
+#     # Convert embedding to bytes for Redis search
+#     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
+#
+#     # Construct the vector similarity search query
+#     # Use a more standard RediSearch vector search syntax
+#     # q = Query("*").sort_by("embedding", query_vector)
+#
+#     q = (
+#         Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
+#         .sort_by("vector_distance")
+#         .return_fields("id", "file", "page", "chunk", "vector_distance")
+#         .dialect(2)
+#     )
+#
+#     # Perform the search
+#     results = redis_client.ft(INDEX_NAME).search(
+#         q, query_params={"vec": query_vector}
+#     )
 
-    # # Transform results into the expected format
-    # top_results = [
-    #     {
-    #         "file": result.file,
-    #         "page": result.page,
-    #         "chunk": result.chunk,
-    #         "similarity": result.vector_distance,
-    #     }
-    #     for result in results.docs
-    # ][:top_k]
     top_results = []
     unique_docs = set()
 
@@ -205,27 +245,80 @@ def interactive_search():
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
 
-    while True:
-        query = input("\nEnter your search query: ")
+    # while True:
+    #     query = input("\nEnter your search query: ")
+    #
+    #     if query.lower() == "exit":
+    #         break
+    #
+    #     # Search for relevant embeddings from the chosen database
+    #     context_results, stats = search_embeddings_redis(query)
+    #
+    #     print("Stats after search:", stats)
+    #
+    #     response, updated_stats = generate_rag_response(query, context_results, stats)
+    #     print_statistics(updated_stats)
+    #
+    #     file_path = "stats/redis_search.csv"
+    #     log_stats_to_csv(updated_stats, query, file_path)
+    #
+    #
+    #     print("\n--- Response ---")
+    #     print(response)
 
-        if query.lower() == "exit":
+    while True:
+        try:
+            query = input("\nEnter your search query: ").strip()
+
+            if query.lower() == "exit":
+                break
+
+            # check for empty queries
+            if not query:
+                print("Query cannot be empty. Please try again.")
+                continue
+
+            print(f"Processing query: '{query}'")
+            query_embedding = get_embedding(query)
+
+            if not query_embedding or len(query_embedding) == 0:
+                print("Error: Unable to generate embedding for this query. Please try a different query.")
+                continue
+
+            print(f"Query embedding length: {len(query_embedding)}")
+
+            # Search for relevant embeddings
+            context_results, stats = search_embeddings_redis(query)
+
+            print("Stats after search:", stats)
+
+            # Generate response
+            response, updated_stats = generate_rag_response(query, context_results, stats)
+            print_statistics(updated_stats)
+
+            # Log stats
+            file_path = "stats/redis_search.csv"
+            log_stats_to_csv(updated_stats, query, file_path)
+
+            print("\n--- Response ---")
+            print(response)
+
+            # small delay before accepting next input to ensure terminal is ready
+            time.sleep(0.5)
+
+        except EOFError:
+            print("\nInput error detected. Resetting input.")
+            time.sleep(1)
+            continue
+
+        except KeyboardInterrupt:
+            print("\nExiting search interface...")
             break
 
-        # Search for relevant embeddings from the chosen database
-        context_results, stats = search_embeddings_redis(query)
-
-        print("Stats after search:", stats)
-
-        response, updated_stats = generate_rag_response(query, context_results, stats)
-        print_statistics(updated_stats)
-
-        file_path = "stats/redis_search.csv"
-        log_stats_to_csv(updated_stats, query, file_path)
-
-
-        print("\n--- Response ---")
-        print(response)
-
+        except Exception as e:
+            print(f"Error processing query: {e}")
+            print("Please try a different query or check your system configuration.")
+            time.sleep(0.5)
 
 
 
