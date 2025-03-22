@@ -7,10 +7,12 @@ import pymongo
 import ollama
 import datetime
 import csv
+from sentence_transformers import SentenceTransformer
+
 
 
 # Embedding models
-# embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
@@ -25,10 +27,13 @@ def cosine_similarity(vec1, vec2):
     """Calculate cosine similarity between two vectors."""
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+#     #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
+#     response = ollama.embeddings(model=model, prompt=text)
+#     return response["embedding"]
+
+def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
+    return model.encode(text).tolist()
 
 def search_embeddings_mongo(query, top_k=3, db="mongo"):
 
@@ -192,25 +197,58 @@ def interactive_search():
     print("Type 'exit' to quit")
 
     while True:
-        query = input("\nEnter your search query: ")
+        try:
+            query = input("\nEnter your search query: ").strip()
 
-        if query.lower() == "exit":
+            if query.lower() == "exit":
+                break
+
+            # check for empty queries
+            if not query:
+                print("Query cannot be empty. Please try again.")
+                continue
+
+            print(f"Processing query: '{query}'")
+            query_embedding = get_embedding(query)
+
+            if not query_embedding or len(query_embedding) == 0:
+                print("Error: Unable to generate embedding for this query. Please try a different query.")
+                continue
+
+            print(f"Query embedding length: {len(query_embedding)}")
+
+            # Search for relevant embeddings
+            context_results, stats = search_embeddings_mongo(query)
+
+            print("Stats after search:", stats)
+
+            # Generate response
+            response, updated_stats = generate_rag_response(query, context_results, stats)
+            print_statistics(updated_stats)
+
+            # Log stats
+            file_path = "stats/mongo_search.csv"
+            log_stats_to_csv(updated_stats, query, file_path)
+
+            print("\n--- Response ---")
+            print(response)
+
+            # small delay before accepting next input to ensure terminal is ready
+            time.sleep(0.5)
+
+        except EOFError:
+            print("\nInput error detected. Resetting input.")
+            time.sleep(1)
+            continue
+
+        except KeyboardInterrupt:
+            print("\nExiting search interface...")
             break
 
-        context_results, stats = search_embeddings_mongo(query)
-
-        print("Stats after search:", stats)
-
-        response, updated_stats = generate_rag_response(query, context_results, stats)
-        print_statistics(updated_stats)
-
-        file_path = "stats/mongo_search.csv"
-
-        log_stats_to_csv(updated_stats, query, file_path)
-
-
-        print("\n--- Response ---")
-        print(response)
+        except Exception as e:
+            print(f"Error processing query: {e}")
+            print("Please try a different query or check your system configuration.")
+            time.sleep(0.5)
 
 
 
