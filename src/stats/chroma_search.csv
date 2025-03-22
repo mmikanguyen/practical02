@@ -1,2 +1,2 @@
-file,timestamp,query,database,query_time,generation_time,total_time,documents_searched,chunks_used
-search.py,2025-03-21 18:59:02,what is redis,chroma,0.9772608280181885,13.440437078475952,14.41769790649414,0,0
+file,timestamp,query,database,query_time,generation_time,total_time
+chroma_search.py,2025-03-22 15:00:49,what is redis,chroma,0.1120138168334961,26.40201210975647,26.514025926589966

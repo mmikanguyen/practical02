@@ -194,9 +194,7 @@ def interactive_search():
             break
 
         # Search for relevant embeddings from the chosen database
-        #context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
-        #context_results, stats = search_embeddings_redis(query)  # or switch to MongoDB or Redis here
-        context_results, stats = search_embeddings_mongo(query)  # or switch to MongoDB or Redis here
+        context_results, stats = search_embeddings_chroma(query)  # or switch to MongoDB or Redis here
 
         print("Stats after search:", stats)
 

@@ -7,7 +7,12 @@ import fitz
 import chromadb
 import ollama
 
-chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+# Anna's port
+chroma_client = chromadb.HttpClient(host="localhost", port=6381)
+
+# Mika's port
+# chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+
 collection = chroma_client.get_or_create_collection(name="embeddings")
 VECTOR_DIM = 768
 
