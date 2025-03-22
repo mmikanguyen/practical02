@@ -6,6 +6,7 @@ import fitz
 import time
 import psutil
 import tracemalloc
+import csv
 from bson.binary import Binary
 
 # MongoDB connection
@@ -87,8 +88,20 @@ def process_pdfs(data_dir):
     current_memory, peak_memory = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
+    # Ensure stats directory exists
+    stats_dir = "stats"
+    os.makedirs(stats_dir, exist_ok=True)
+
+    stats_path = os.path.join(stats_dir, "mongo_processing.csv")
+
+    with open(stats_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
+        writer.writerow(["MongoDB", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time])
+
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
+    print(f"Exported stats to {stats_path}")
 
 
 # Main function

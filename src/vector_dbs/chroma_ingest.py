@@ -1,35 +1,28 @@
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-
-import chromadb
-import ollama
-import numpy as np
-import fitz
-import os
+import csv
 import time
 import tracemalloc
 import psutil
-
+import fitz
+import chromadb
+import ollama
 
 chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 collection = chroma_client.get_or_create_collection(name="embeddings")
 VECTOR_DIM = 768
 
 
-# Clear ChromaDB collection
 def clear_chroma_store():
     print("Clearing existing Chroma store...")
     collection.delete(where={"$exists": True})
     print("Chroma store cleared.")
 
 
-# Generate an embedding using nomic-embed-text
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]
 
 
-# Store embedding in ChromaDB
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
     doc_id = f"{file}_page_{page}_chunk_{chunk[:30]}"
     collection.add(
@@ -40,7 +33,6 @@ def store_embedding(file: str, page: str, chunk: str, embedding: list):
     print(f"Stored embedding for: {chunk[:30]}...")
 
 
-# Extract text from a PDF by page
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
     text_by_page = []
@@ -49,7 +41,6 @@ def extract_text_from_pdf(pdf_path):
     return text_by_page
 
 
-# Split the text into chunks with overlap
 def split_text_into_chunks(text, chunk_size=300, overlap=50):
     words = text.split()
     chunks = []
@@ -59,10 +50,10 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
     return chunks
 
 
-# Track memory usage
 def track_memory_usage():
     memory_info = psutil.virtual_memory()
-    return memory_info.percent  # Returns memory usage as a percentage
+    return memory_info.percent
+
 
 def process_pdfs(data_dir):
     start_time = time.time()
@@ -91,26 +82,26 @@ def process_pdfs(data_dir):
     current_memory, peak_memory = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
+    # Ensure stats directory exists
+    stats_dir = "stats"
+    os.makedirs(stats_dir, exist_ok=True)
+
+    stats_path = os.path.join(stats_dir, "chroma_processing.csv")
+
+    with open(stats_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
+        writer.writerow(["ChromaDB", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time])
+
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
+    print(f"Exported stats to {stats_path}")
 
-
-
-
-"""
-def query_chroma(query_text: str):
-    embedding = get_embedding(query_text)
-    results = collection.query(query_embeddings=[embedding], n_results=5)
-
-    for doc_id, metadata in zip(results["ids"], results["metadatas"]):
-        print(f"{doc_id} \n ----> {metadata}\n")
-"""
 
 def main():
     clear_chroma_store()
     process_pdfs("../../data/")
     print("\n---Done processing PDFs---\n")
-    #query_chroma("What is the capital of France?")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ import numpy as np
 import os
 import fitz
 import argparse
+import csv
 import time
 import tracemalloc
 from tqdm import tqdm
@@ -222,4 +223,17 @@ def main():
 
     print(f"\nProcessing completed in {elapsed:.2f} seconds")
     print(f"Peak Memory Usage: {peak_memory / 1024 / 1024:.2f} MB")
+
+    # Ensure stats directory exists
+    stats_dir = "stats"
+    os.makedirs(stats_dir, exist_ok=True)
+
+    stats_path = os.path.join(stats_dir, "redis_processing.csv")
+
+    with open(stats_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
+        writer.writerow(["MongoDB", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed])
+
+
 main()
