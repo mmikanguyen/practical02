@@ -1,0 +1,3 @@
+Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s)
+mongo,nomic-embed-text,0.9113683700561523,65.626953125
+mongo,nomic-embed-text,0.9117984771728516,62.239423990249634

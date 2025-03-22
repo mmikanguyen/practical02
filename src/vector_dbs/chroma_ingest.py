@@ -82,16 +82,23 @@ def process_pdfs(data_dir):
     current_memory, peak_memory = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
-    # Ensure stats directory exists
-    stats_dir = "stats"
-    os.makedirs(stats_dir, exist_ok=True)
+    # Ensure stats directory exists at the expected location
+    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "stats"))
+    if not os.path.exists(stats_dir):
+        print(f"Error: Stats directory not found at {stats_dir}. Please create it manually.")
+        return  # Exit the function if the folder doesn't exist
 
     stats_path = os.path.join(stats_dir, "chroma_processing.csv")
 
-    with open(stats_path, mode='w', newline='') as file:
+    with open(stats_path, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
-        writer.writerow(["ChromaDB", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time])
+
+        # Write header only if the file is empty
+        if file.tell() == 0:
+            writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
+
+        # Append the new stats to the CSV
+        writer.writerow(["chroma", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")

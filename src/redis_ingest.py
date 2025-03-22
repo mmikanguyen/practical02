@@ -233,7 +233,7 @@ def main():
     with open(stats_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
-        writer.writerow(["MongoDB", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed])
+        writer.writerow(["redis", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed])
 
 
 main()

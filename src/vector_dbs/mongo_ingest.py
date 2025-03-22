@@ -89,15 +89,27 @@ def process_pdfs(data_dir):
     tracemalloc.stop()
 
     # Ensure stats directory exists
-    stats_dir = "stats"
+    # Ensure stats directory exists at the expected location
+    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "stats"))
+    if not os.path.exists(stats_dir):
+        print(f"Error: Stats directory not found at {stats_dir}. Please create it manually.")
+        return  # Exit the function if the folder doesn't exist
+
+    stats_path = os.path.join(stats_dir, "mongo_processing.csv")
+
     os.makedirs(stats_dir, exist_ok=True)
 
     stats_path = os.path.join(stats_dir, "mongo_processing.csv")
 
-    with open(stats_path, mode='w', newline='') as file:
+    with open(stats_path, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
-        writer.writerow(["MongoDB", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time])
+
+        # Write header only if the file is empty
+        if file.tell() == 0:
+            writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)"])
+
+        # Append the new stats to the CSV
+        writer.writerow(["mongo", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
