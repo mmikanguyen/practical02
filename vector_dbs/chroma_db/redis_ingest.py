@@ -225,7 +225,7 @@ def main():
     print(f"Peak Memory Usage: {peak_memory / 1024 / 1024:.2f} MB")
 
     # Ensure stats directory exists
-    stats_dir = "stats"
+    stats_dir = "../../src/stats"
     os.makedirs(stats_dir, exist_ok=True)
 
     stats_path = os.path.join(stats_dir, "redis_processing.csv")

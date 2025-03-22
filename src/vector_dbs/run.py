@@ -7,6 +7,6 @@ import subprocess
 for i in range(10):
     print(f"Running {'mongo_ingest.py'} - Execution {i+1}")
     subprocess.run(['python', 'mongo_ingest.py'])
-    print(f"Running {'search.py'} - Execution {i + 1}")
-    subprocess.run(['python', 'search.py'])
+    print(f"Running {'chroma_search.py'} - Execution {i + 1}")
+    subprocess.run(['python', 'chroma_search.py'])
 
