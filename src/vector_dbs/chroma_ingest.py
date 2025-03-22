@@ -12,10 +12,8 @@ import ollama
 
 # Mika's port
 chroma_client = chromadb.HttpClient(host="localhost", port=8000)
-
 collection = chroma_client.get_or_create_collection(name="embeddings")
 VECTOR_DIM = 768
-
 
 def clear_chroma_store():
     print("Clearing existing Chroma store...")
@@ -23,10 +21,16 @@ def clear_chroma_store():
     print("Chroma store cleared.")
 
 
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+#def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+  #  response = ollama.embeddings(model=model, prompt=text)
+  #  return response["embedding"]
 
+from sentence_transformers import SentenceTransformer
+
+#def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
+    #return model.encode(text).tolist()
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
     doc_id = f"{file}_page_{page}_chunk_{chunk[:30]}"
@@ -93,7 +97,7 @@ def process_pdfs(data_dir):
     tracemalloc.stop()
 
     # Ensure stats directory exists at the expected location
-    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "stats"))
+    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "stats"))
     if not os.path.exists(stats_dir):
         print(f"Error: Stats directory not found at {stats_dir}. Please create it manually.")
         return  # Exit the function if the folder doesn't exist
@@ -108,7 +112,7 @@ def process_pdfs(data_dir):
             writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Documents Processed", "Chunks Processed"])
 
         # Append the new stats to the CSV
-        writer.writerow(["chroma", "nomic-embed-text", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
+        writer.writerow(["chroma", "all-mpnet-base-v2", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
@@ -118,8 +122,8 @@ def process_pdfs(data_dir):
 
 def main():
     clear_chroma_store()
-    process_pdfs("../data/")
-    print("\n---Done processing PDFs---\n")
+    process_pdfs("../../data/")
+    print("\n--- Done processing PDFs ---\n")
 
 
 if __name__ == "__main__":
