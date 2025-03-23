@@ -9,16 +9,20 @@ import fitz
 import chromadb
 from sentence_transformers import SentenceTransformer
 import ollama
+import multiprocessing
+import gc
 
-EMBEDDING_MODEL = "all-mpnet-base-v2"
+_model_cache = {}
+
+# EMBEDDING_MODEL = "all-mpnet-base-v2"
 # EMBEDDING_MODEL = 'hkunlp/instructor-xl'
-# EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = "nomic-embed-text"
 
 # Anna's port
-#chroma_client = chromadb.HttpClient(host="localhost", port=6381)
+chroma_client = chromadb.HttpClient(host="localhost", port=6381)
 
 # Mika's port
-chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+# chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 collection = chroma_client.get_or_create_collection(name="embeddings")
 VECTOR_DIM = 768
 
@@ -41,24 +45,28 @@ def clear_chroma_store():
 #     # Generate and return the embedding for the input text
 #     return model.encode([text])[0]
 
-
 def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
+    global _model_cache
+
     if model_name == "nomic-embed-text" or model_name.startswith("llama"):
         response = ollama.embeddings(model=model_name, prompt=text)
         return response["embedding"]
 
     elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
-        model = SentenceTransformer(model_name)
+        if model_name not in _model_cache:
+            _model_cache[model_name] = SentenceTransformer(model_name)
+        model = _model_cache[model_name]
         return model.encode(text).tolist()
 
     elif model_name == "hkunlp/instructor-xl":
-        model = SentenceTransformer(model_name)
+        if model_name not in _model_cache:
+            _model_cache[model_name] = SentenceTransformer(model_name)
+        model = _model_cache[model_name]
         return model.encode([text])[0].tolist()
 
     else:
         raise ValueError(
             f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
-
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
     doc_id = f"{file}_page_{page}_chunk_{chunk[:30]}"
@@ -78,7 +86,7 @@ def extract_text_from_pdf(pdf_path):
     return text_by_page
 
 
-def split_text_into_chunks(text, chunk_size=300, overlap=50):
+def split_text_into_chunks(text, chunk_size=100, overlap=20):
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_size - overlap):
@@ -148,11 +156,22 @@ def process_pdfs(data_dir):
     print(f"Chunks processed: {chunk_count}")
     print(f"Exported stats to {stats_path}")
 
+
+
 def main():
+    # Set the start method to 'spawn' which is less prone to resource leaks
+    if __name__ == "__main__" and multiprocessing.get_start_method() != 'spawn':
+        multiprocessing.set_start_method('spawn', force=True)
+
     clear_chroma_store()
     process_pdfs("../../data/")
+
+    # Add explicit cleanup
+    gc.collect()
+
+    # If you're using a SentenceTransformer model, try to clean it up explicitly
+    if 'model' in globals():
+        del model
+        gc.collect()
+
     print("\n--- Done processing PDFs ---\n")
-
-
-if __name__ == "__main__":
-    main()
