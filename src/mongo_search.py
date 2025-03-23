@@ -30,10 +30,10 @@ def cosine_similarity(vec1, vec2):
     """Calculate cosine similarity between two vectors."""
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+#     #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
+#     response = ollama.embeddings(model=model, prompt=text)
+#     return response["embedding"]
 
 # def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
 #     return model.encode(text).tolist()
