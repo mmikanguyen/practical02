@@ -1,0 +1,3 @@
+Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s),Documents Processed,Chunks Processed
+mongo,all-mpnet-base-v2,0.3529386520385742,39.12038993835449,14,167
+mongo,all-mpnet-base-v2,0.8877115249633789,62.09251356124878,14,167

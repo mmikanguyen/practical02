@@ -5,6 +5,7 @@ import tracemalloc
 import psutil
 import fitz
 import chromadb
+from sentence_transformers import SentenceTransformer
 import ollama
 
 # Anna's port
@@ -25,12 +26,15 @@ def clear_chroma_store():
   #  response = ollama.embeddings(model=model, prompt=text)
   #  return response["embedding"]
 
-from sentence_transformers import SentenceTransformer
+#def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+ #   return model.encode(text).tolist()
 
-#def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
-    #return model.encode(text).tolist()
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+def get_embedding(text: str, model: str = SentenceTransformer("hkunlp/instructor-xl")):
+    # Initialize the model with the provided model name
+    model_instance = SentenceTransformer(model)
+    embedding = model_instance.encode(text)
+    return embedding
+
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
     doc_id = f"{file}_page_{page}_chunk_{chunk[:30]}"

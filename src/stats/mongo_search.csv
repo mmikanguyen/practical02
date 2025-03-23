@@ -5,3 +5,10 @@ mongo_search.py,2025-03-22 16:08:53,"What are the core stages of the MongoDB agg
 mongo_search.py,2025-03-22 16:09:31,"What is the difference between embedding and referencing when modeling relationships in MongoDB, and when should each approach be used?",mongo,0.23777508735656738,25.650207996368408,25.887983083724976
 mongo_search.py,2025-03-22 16:10:16,"How does the CAP theorem apply to distributed databases, and what trade-offs must be considered when designing a system?",mongo,0.04763507843017578,36.450514793395996,36.49814987182617
 mongo_search.py,2025-03-22 16:42:24,"What is the difference between embedding and referencing when modeling relationships in MongoDB, and when should each approach be used?",mongo,0.05450105667114258,35.203428745269775,35.25792980194092
+mongo_search.py,2025-03-22 17:30:00,What is a linked list?,mongo,0.1380913257598877,71.72274875640869,71.86084008216858
+mongo_search.py,2025-03-22 17:31:59,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,mongo,0.17765140533447266,92.47202515602112,92.64967656135559
+mongo_search.py,2025-03-22 17:33:36,What is a linked list,mongo,0.06749272346496582,21.75191831588745,21.819411039352417
+mongo_search.py,2025-03-22 17:38:12,What is a linked list,mongo,0.08564257621765137,26.39631724357605,26.4819598197937
+mongo_search.py,2025-03-22 17:39:17,What is a linked list?,mongo,0.04870319366455078,20.499895095825195,20.548598289489746
+mongo_search.py,2025-03-22 17:40:13,"from transformers import AutoTokenizer, AutoModel",mongo,0.05556607246398926,49.82043814659119,49.876004219055176
+mongo_search.py,2025-03-22 17:41:41,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,mongo,0.08289837837219238,55.65243649482727,55.73533487319946

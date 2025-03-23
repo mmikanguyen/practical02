@@ -32,11 +32,11 @@ def clear_mongo_collection():
 
 
 # Get text embedding
-# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-#     response = ollama.embeddings(model=model, prompt=text)
+def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+    response = ollama.embeddings(model=model, prompt=text)
 #     return response["embedding"]
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+#def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    #return model.encode(text).tolist()
 
 
 # Store embedding in MongoDB
@@ -102,7 +102,7 @@ def process_pdfs(data_dir):
     tracemalloc.stop()
 
     # Ensure stats directory exists at the expected location
-    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..stats"))
+    stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "stats"))
     if not os.path.exists(stats_dir):
         print(f"Error: Stats directory not found at {stats_dir}. Please create it manually.")
         return  # Exit the function if the folder doesn't exist
