@@ -1,4 +1,6 @@
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 import csv
 import time
 import tracemalloc
@@ -9,6 +11,9 @@ from sentence_transformers import SentenceTransformer
 import ollama
 
 EMBEDDING_MODEL = "all-mpnet-base-v2"
+# EMBEDDING_MODEL = 'hkunlp/instructor-xl'
+# EMBEDDING_MODEL = "nomic-embed-text"
+
 # Anna's port
 #chroma_client = chromadb.HttpClient(host="localhost", port=6381)
 
@@ -28,13 +33,32 @@ def clear_chroma_store():
   #  return response["embedding"]
 
 # sentence_transformers
-"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()"""
+# def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+#     return model.encode(text).tolist()
 
 #instructor-xl
-def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
-    # Generate and return the embedding for the input text
-    return model.encode([text])[0]
+# def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+#     # Generate and return the embedding for the input text
+#     return model.encode([text])[0]
+
+
+def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
+    if model_name == "nomic-embed-text" or model_name.startswith("llama"):
+        response = ollama.embeddings(model=model_name, prompt=text)
+        return response["embedding"]
+
+    elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
+        model = SentenceTransformer(model_name)
+        return model.encode(text).tolist()
+
+    elif model_name == "hkunlp/instructor-xl":
+        model = SentenceTransformer(model_name)
+        return model.encode([text])[0].tolist()
+
+    else:
+        raise ValueError(
+            f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
+
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
     doc_id = f"{file}_page_{page}_chunk_{chunk[:30]}"
@@ -91,7 +115,7 @@ def process_pdfs(data_dir):
             chunks = split_text_into_chunks(text)
             chunk_count += len(chunks)
             for chunk_index, chunk in enumerate(chunks):
-                embedding = get_embedding(chunk)
+                embedding = get_embedding(chunk, EMBEDDING_MODEL)
                 store_embedding(file_name, page_num, chunk, embedding)
 
         print(f"Processed {file_name}")

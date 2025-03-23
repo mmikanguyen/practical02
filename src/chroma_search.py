@@ -20,6 +20,13 @@ from sentence_transformers import SentenceTransformer
 chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
 
+RESPONSE_MODEL = 'llama2:7b'
+#RESPONSE_MODEL = 'mistral:latest'
+
+EMBEDDING_MODEL = "all-mpnet-base-v2"
+# EMBEDDING_MODEL = 'hkunlp/instructor-xl'
+# EMBEDDING_MODEL = "nomic-embed-text"
+
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
@@ -36,12 +43,30 @@ def cosine_similarity(vec1, vec2):
 #    return response["embedding"]
 
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+# def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+#     return model.encode(text).tolist()
 
-"""def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
-    # Generate and return the embedding for the input text
-    return model.encode([text])[0]"""
+# def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+#     # Generate and return the embedding for the input text
+#     return model.encode([text])[0]
+
+
+def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
+    if model_name == "nomic-embed-text" or model_name.startswith("llama"):
+        response = ollama.embeddings(model=model_name, prompt=text)
+        return response["embedding"]
+
+    elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
+        model = SentenceTransformer(model_name)
+        return model.encode(text).tolist()
+
+    elif model_name == "hkunlp/instructor-xl":
+        model = SentenceTransformer(model_name)
+        return model.encode([text])[0].tolist()
+
+    else:
+        raise ValueError(
+            f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
 
 
 def search_embeddings_chroma(query, top_k=3, db="chroma"):
@@ -53,7 +78,7 @@ def search_embeddings_chroma(query, top_k=3, db="chroma"):
     start_time = time.time()
 
     # Get and validate embedding
-    query_embedding = get_embedding(query)
+    query_embedding = get_embedding(query, EMBEDDING_MODEL)
     if query_embedding is None or query_embedding.size == 0:
         raise ValueError("Received empty embedding for query")
 
@@ -117,7 +142,7 @@ Answer:"""
 
     # Generate response using Ollama
     response = ollama.chat(
-        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+        model=RESPONSE_MODEL, messages=[{"role": "user", "content": prompt}]
     )
 
     if stats:
