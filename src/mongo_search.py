@@ -12,7 +12,10 @@ from sentence_transformers import SentenceTransformer
 
 
 # Embedding models
-embedding_model = SentenceTransformer("all-mpnet-base-v2")
+# embedding_model = SentenceTransformer("all-mpnet-base-v2")
+embedding_model = 'nomic-embed-text'
+# response_model = 'mistral:latest'
+response_model = 'llama2:7b'
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
@@ -27,17 +30,17 @@ def cosine_similarity(vec1, vec2):
     """Calculate cosine similarity between two vectors."""
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
-"""def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     #other embedding SentenceTransformer("all-MiniLM-L6-v2") or SentenceTransformer("all-mpnet-base-v2")
     response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]"""
+    return response["embedding"]
 
-"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()"""
+# def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+#     return model.encode(text).tolist()
 
-def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
-    # Generate and return the embedding for the input text
-    return model.encode([text])[0]
+# def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+#     # Generate and return the embedding for the input text
+#     return model.encode([text])[0]
 
 def search_embeddings_mongo(query, top_k=3, db="mongo"):
 
@@ -128,9 +131,9 @@ Query: {query}
 
 Answer:"""
 
-    # Generate response using Ollama
+    # # Generate response using Ollama
     response = ollama.chat(
-        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+        model=response_model, messages=[{"role": "user", "content": prompt}]
     )
 
     if stats:
