@@ -17,3 +17,5 @@ mongo_search.py,2025-03-23 09:25:54,What is a linked list?,mongo,0.0951137542724
 mongo_search.py,2025-03-23 12:59:48,What is a linked list?,mongo,0.9240627288818359,336.32467818260193,337.24874091148376
 mongo_search.py,2025-03-23 13:31:55,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,mongo,0.05122208595275879,202.8023660182953,202.85358810424805
 mongo_search.py,2025-03-23 13:33:30,When are linked lists faster than contiguously-allocated lists?,mongo,0.06378293037414551,79.7015700340271,79.76535296440125
+mongo_search.py,2025-03-23 13:42:46,"In the context of a relational database system, what is a transaction?",mongo,0.09299278259277344,380.9519889354706,381.04498171806335
+mongo_search.py,2025-03-23 13:47:23,"In the context of a relational database system, what is a transaction?",mongo,0.09818005561828613,95.30615496635437,95.40433502197266

@@ -14,8 +14,8 @@ from sentence_transformers import SentenceTransformer
 # Embedding models
 # embedding_model = SentenceTransformer("all-mpnet-base-v2")
 embedding_model = 'nomic-embed-text'
-# response_model = 'mistral:latest'
-response_model = 'llama2:7b'
+response_model = 'mistral:latest'
+#response_model = 'llama2:7b'
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["embedding_db"]
