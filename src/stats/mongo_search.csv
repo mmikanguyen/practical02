@@ -21,3 +21,4 @@ mongo_search.py,2025-03-23 13:42:46,"In the context of a relational database sys
 mongo_search.py,2025-03-23 13:47:23,"In the context of a relational database system, what is a transaction?",mongo,0.09818005561828613,95.30615496635437,95.40433502197266
 mongo_search.py,2025-03-23 13:53:39,WHAT IS REDIS,mongo,1.4788649082183838,26.991435766220093,28.470300674438477
 mongo_search.py,2025-03-23 14:00:35,What is disk-based indexing and why is it important for database systems?,mongo,0.6204862594604492,398.76204085350037,399.3825271129608
+mongo_search.py,2025-03-23 14:05:16,what is redis,mongo,0.04114508628845215,23.08585786819458,23.127002954483032

@@ -12,7 +12,7 @@ import tracemalloc
 import csv
 from bson.binary import Binary
 from sentence_transformers import SentenceTransformer
-
+model = SentenceTransformer("hkunlp/instructor-xl")
 
 # MongoDB connection
 client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -22,7 +22,8 @@ collection = db["embeddings"]
 # Embedding model and vector dimension
 VECTOR_DIM = 768
 # EMBEDDING_MODEL = "hkunlp/instructor-xl"
-EMBEDDING_MODEL = "nomic-embed-text"
+# EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = 'hkunlp/instructor-xl'
 
 
 # Clear MongoDB collection

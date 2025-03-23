@@ -14,6 +14,7 @@ from sentence_transformers import SentenceTransformer
 # Embedding models
 # embedding_model = SentenceTransformer("all-mpnet-base-v2")
 embedding_model = 'nomic-embed-text'
+embedding_model = 'hkunlp/instructor-xl'
 
 
 response_model = 'mistral:latest'
