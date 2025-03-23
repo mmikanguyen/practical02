@@ -16,8 +16,11 @@ from redis.commands.search.field import VectorField, TextField
 
 
 # Embedding models
-embedding_model = SentenceTransformer("all-mpnet-base-v2")
+# embedding_model = SentenceTransformer("all-mpnet-base-v2")
+embedding_model = "all-mpnet-base-v2"
 
+# response_model = "mistral:latest"
+response_model = 'llama2:7b'
 
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
@@ -40,28 +43,48 @@ def cosine_similarity(vec1, vec2):
     return model.encode(text).tolist()"""
 
 
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    try:
-        response = ollama.embeddings(model=model, prompt=text)
-        embedding = response["embedding"]
+def get_embedding(text: str, model_name: str = embedding_model) -> list:
+    # Handle Ollama embeddings
+    if model_name == "nomic-embed-text" or model_name.startswith("llama"):
+        response = ollama.embeddings(model=model_name, prompt=text)
+        return response["embedding"]
 
-        # Verify embedding dimension
-        if len(embedding) == 0:
-            print("Warning: Received empty embedding vector")
-        # Return zero vector of expected dimension as fallback
-            return [0.0] * VECTOR_DIM
+    # Handle SentenceTransformer models
+    elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
+        model = SentenceTransformer(model_name)
+        return model.encode(text).tolist()
 
-        if len(embedding) != VECTOR_DIM:
-            print(f"Warning: Embedding dimension mismatch. Got {len(embedding)}, expected {VECTOR_DIM}")
-            # You could pad or truncate the vector here if needed
-            # For now, we'll raise an exception to make the issue clear
-            raise ValueError(f"Embedding dimension mismatch: got {len(embedding)}, expected {VECTOR_DIM}")
+    # Handle instructor models which require special formatting
+    elif model_name == "hkunlp/instructor-xl":
+        model = SentenceTransformer(model_name)
+        return model.encode([text])[0].tolist()
 
-        return embedding
-    except Exception as e:
-        print(f"Error generating embedding: {e}")
-        # Return zero vector as fallback
-        return [0.0] * VECTOR_DIM
+    else:
+        raise ValueError(
+            f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
+
+# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+#     try:
+#         response = ollama.embeddings(model=model, prompt=text)
+#         embedding = response["embedding"]
+#
+#         # Verify embedding dimension
+#         if len(embedding) == 0:
+#             print("Warning: Received empty embedding vector")
+#         # Return zero vector of expected dimension as fallback
+#             return [0.0] * VECTOR_DIM
+#
+#         if len(embedding) != VECTOR_DIM:
+#             print(f"Warning: Embedding dimension mismatch. Got {len(embedding)}, expected {VECTOR_DIM}")
+#             # You could pad or truncate the vector here if needed
+#             # For now, we'll raise an exception to make the issue clear
+#             raise ValueError(f"Embedding dimension mismatch: got {len(embedding)}, expected {VECTOR_DIM}")
+#
+#         return embedding
+#     except Exception as e:
+#         print(f"Error generating embedding: {e}")
+#         # Return zero vector as fallback
+#         return [0.0] * VECTOR_DIM
 
 # def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
 #     return model.encode(text).tolist()
@@ -76,7 +99,7 @@ def search_embeddings_redis(query, top_k=3, db="redis"):
     start_time = time.time()
 
     # Make sure to use the same model that was used during ingestion
-    query_embedding = get_embedding(query)
+    query_embedding = get_embedding(query, embedding_model)
 
     # Add debug info
     print(f"Query embedding length: {len(query_embedding)}")
@@ -184,7 +207,7 @@ Answer:"""
 
     # Generate response using Ollama
     response = ollama.chat(
-        model="mistral:latest", messages=[{"role": "user", "content": prompt}]
+        model=response_model, messages=[{"role": "user", "content": prompt}]
     )
 
     if stats:
@@ -288,7 +311,7 @@ def interactive_search():
                 continue
 
             print(f"Processing query: '{query}'")
-            query_embedding = get_embedding(query)
+            query_embedding = get_embedding(query, embedding_model)
 
             if query_embedding is None or len(query_embedding) == 0:
                 print("Error: Unable to generate embedding for this query. Please try a different query.")

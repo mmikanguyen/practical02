@@ -85,7 +85,7 @@ def extract_text_from_pdf(pdf_path):
 
 
 # Split text into chunks with overlap
-def split_text_into_chunks(text, chunk_size=300, overlap=50):
+def split_text_into_chunks(text, chunk_size=100, overlap=20):
     words = text.split()
     return [" ".join(words[i: i + chunk_size]) for i in range(0, len(words), chunk_size - overlap)]
 

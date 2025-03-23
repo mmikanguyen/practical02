@@ -88,9 +88,9 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
         )
 
 # use for nomic_embed
-def get_embedding(text, model=EMBEDDING_MODEL):
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+# def get_embedding(text, model=EMBEDDING_MODEL):
+#     response = ollama.embeddings(model=model, prompt=text)
+#     return response["embedding"]
 
 
 # Define the get_embedding function
@@ -100,6 +100,26 @@ def get_embedding(text, model=EMBEDDING_MODEL):
 
 """def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
     return model.encode(text).tolist()"""
+
+def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
+    # Handle Ollama embeddings
+    if model_name == "nomic-embed-text" or model_name.startswith("llama"):
+        response = ollama.embeddings(model=model_name, prompt=text)
+        return response["embedding"]
+
+    # Handle SentenceTransformer models
+    elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
+        model = SentenceTransformer(model_name)
+        return model.encode(text).tolist()
+
+    # Handle instructor models which require special formatting
+    elif model_name == "hkunlp/instructor-xl":
+        model = SentenceTransformer(model_name)
+        return model.encode([text])[0].tolist()
+
+    else:
+        raise ValueError(
+            f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
 
 def extract_text_from_pdf(pdf_path):
     # strip stop words and punctuation??
@@ -158,7 +178,7 @@ def process_document(redis_client, file_path):
                 continue
 
             # Generate embedding
-            embedding = get_embedding(chunk_text)
+            embedding = get_embedding(chunk_text, EMBEDDING_MODEL)
 
             # Store in vector database
             store_document_chunk(
@@ -204,7 +224,7 @@ def run_query(redis_client, query_text, k=3):
     from redis.commands.search.query import Query
 
     # Get embedding for query
-    embedding = get_embedding(query_text)
+    embedding = get_embedding(query_text, EMBEDDING_MODEL)
     embedding_bytes = np.array(embedding, dtype=np.float32).tobytes()
 
     # Create search query
