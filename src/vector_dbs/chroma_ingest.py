@@ -8,6 +8,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 import ollama
 
+EMBEDDING_MODEL = "nomic-embed"
 # Anna's port
 #chroma_client = chromadb.HttpClient(host="localhost", port=6381)
 
@@ -21,19 +22,15 @@ def clear_chroma_store():
     collection.delete(where={"$exists": True})
     print("Chroma store cleared.")
 
-
+# nomic-embed
 #def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
   #  response = ollama.embeddings(model=model, prompt=text)
   #  return response["embedding"]
 
-#def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
- #   return model.encode(text).tolist()
+# sentence_transformers
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
 
-def get_embedding(text: str, model: str = SentenceTransformer("hkunlp/instructor-xl")):
-    # Initialize the model with the provided model name
-    model_instance = SentenceTransformer(model)
-    embedding = model_instance.encode(text)
-    return embedding
 
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
@@ -116,7 +113,7 @@ def process_pdfs(data_dir):
             writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Documents Processed", "Chunks Processed"])
 
         # Append the new stats to the CSV
-        writer.writerow(["chroma", "all-mpnet-base-v2", peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
+        writer.writerow(["chroma", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")

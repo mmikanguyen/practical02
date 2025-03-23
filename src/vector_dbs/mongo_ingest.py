@@ -34,11 +34,10 @@ def clear_mongo_collection():
 # Get text embedding
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
     response = ollama.embeddings(model=model, prompt=text)
-#     return response["embedding"]
-#def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    #return model.encode(text).tolist()
-
-
+    return response["embedding"]
+"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
+"""
 # Store embedding in MongoDB
 def store_embedding(file: str, page: int, chunk: str, embedding: list):
     document = {

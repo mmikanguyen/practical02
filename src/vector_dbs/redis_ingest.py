@@ -93,8 +93,13 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
 #     return response["embedding"]
 
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+# Define the get_embedding function
+def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+    # Generate and return the embedding for the input text
+    return model.encode([text])[0]
+
+#def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+#    return model.encode(text).tolist()
 
 def extract_text_from_pdf(pdf_path):
     # strip stop words and punctuation??
@@ -255,22 +260,20 @@ def main():
     os.makedirs(stats_dir, exist_ok=True)
 
     stats_path = os.path.join(stats_dir, "redis_processing.csv")
-
-    # Open the CSV file in append mode
     with open(stats_path, mode='a', newline='') as file:
         writer = csv.writer(file)
 
-        # If the file is empty (i.e., no header row), write the header
+        # Only write the header if the file is empty
         if file.tell() == 0:  # Check if file is empty
             writer.writerow(
                 ["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Total Documents",
-                 "Total Chunks"])
+                 "Total Chunks"]
+            )
 
         # Append the new stats
         writer.writerow(
-            ["redis", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time, total_documents, total_chunks])
-
-
+            ["redis", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time, total_documents, total_chunks]
+        )
 
 
 main()

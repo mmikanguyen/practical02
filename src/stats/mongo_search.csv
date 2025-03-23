@@ -12,3 +12,5 @@ mongo_search.py,2025-03-22 17:38:12,What is a linked list,mongo,0.08564257621765
 mongo_search.py,2025-03-22 17:39:17,What is a linked list?,mongo,0.04870319366455078,20.499895095825195,20.548598289489746
 mongo_search.py,2025-03-22 17:40:13,"from transformers import AutoTokenizer, AutoModel",mongo,0.05556607246398926,49.82043814659119,49.876004219055176
 mongo_search.py,2025-03-22 17:41:41,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,mongo,0.08289837837219238,55.65243649482727,55.73533487319946
+mongo_search.py,2025-03-23 09:20:11,What is a linked list?,mongo,0.1196293830871582,107.64434909820557,107.76397848129272
+mongo_search.py,2025-03-23 09:25:54,What is a linked list?,mongo,0.09511375427246094,149.52176308631897,149.61687684059143
