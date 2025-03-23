@@ -22,8 +22,7 @@ collection = db["embeddings"]
 # Embedding model and vector dimension
 VECTOR_DIM = 768
 # EMBEDDING_MODEL = "hkunlp/instructor-xl"
-# EMBEDDING_MODEL = "nomic-embed-text"
-EMBEDDING_MODEL = 'hkunlp/instructor-xl'
+EMBEDDING_MODEL = "nomic-embed-text"
 
 
 # Clear MongoDB collection
