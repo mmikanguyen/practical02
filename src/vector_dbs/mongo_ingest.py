@@ -21,8 +21,11 @@ collection = db["embeddings"]
 
 # Embedding model and vector dimension
 VECTOR_DIM = 768
-EMBEDDING_MODEL = "all-mpnet-base-v2"
+EMBEDDING_MODEL = "hkunlp/instructor-xl"
 
+def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+    # Generate and return the embedding for the input text
+    return model.encode([text])[0]
 
 # Clear MongoDB collection
 def clear_mongo_collection():

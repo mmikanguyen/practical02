@@ -32,8 +32,12 @@ def cosine_similarity(vec1, vec2):
     response = ollama.embeddings(model=model, prompt=text)
     return response["embedding"]"""
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()"""
+
+def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+    # Generate and return the embedding for the input text
+    return model.encode([text])[0]
 
 def search_embeddings_mongo(query, top_k=3, db="mongo"):
 
@@ -211,7 +215,8 @@ def interactive_search():
             print(f"Processing query: '{query}'")
             query_embedding = get_embedding(query)
 
-            if not query_embedding or len(query_embedding) == 0:
+            # dont change this or else wont work for instructor
+            if query_embedding is None or len(query_embedding) == 0:
                 print("Error: Unable to generate embedding for this query. Please try a different query.")
                 continue
 

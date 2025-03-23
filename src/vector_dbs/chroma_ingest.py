@@ -28,10 +28,13 @@ def clear_chroma_store():
   #  return response["embedding"]
 
 # sentence_transformers
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+#def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    #return model.encode(text).tolist()
 
-
+#instructor-xl
+def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+    # Generate and return the embedding for the input text
+    return model.encode([text])[0]
 
 def store_embedding(file: str, page: str, chunk: str, embedding: list):
     doc_id = f"{file}_page_{page}_chunk_{chunk[:30]}"

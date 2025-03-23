@@ -36,8 +36,13 @@ def cosine_similarity(vec1, vec2):
 #    return response["embedding"]
 
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()"""
+
+def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+    # Generate and return the embedding for the input text
+    return model.encode([text])[0]
+
 
 def search_embeddings_chroma(query, top_k=3, db="chroma"):
     stats = {
@@ -49,7 +54,7 @@ def search_embeddings_chroma(query, top_k=3, db="chroma"):
 
     # Get and validate embedding
     query_embedding = get_embedding(query)
-    if not query_embedding:
+    if query_embedding is None or query_embedding.size == 0:
         raise ValueError("Received empty embedding for query")
 
     query_vector = np.array(query_embedding, dtype=np.float32)
