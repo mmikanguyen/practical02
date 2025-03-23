@@ -34,7 +34,7 @@ CHUNK_OVERLAP = 20 # is this necessary
 
 # EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
 EMBEDDING_MODEL = "nomic-embed-text"
-embedding_model = SentenceTransformer("all-mpnet-base-v2")
+# EMBEDDING_MODEL = "all-mpnet-base-v2"
 
 
 def get_redis_connection():

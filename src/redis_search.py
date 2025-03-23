@@ -16,8 +16,9 @@ from redis.commands.search.field import VectorField, TextField
 
 
 # Embedding models
-# embedding_model = SentenceTransformer("all-mpnet-base-v2")
-embedding_model = "all-mpnet-base-v2"
+# embedding_model = "all-mpnet-base-v2"
+embedding_model = 'nomic-embed-text'
+
 
 # response_model = "mistral:latest"
 response_model = 'llama2:7b'

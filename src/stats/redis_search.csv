@@ -23,3 +23,5 @@ redis_search.py,2025-03-23 13:29:30,What is a linked list,redis,0.07702136039733
 redis_search.py,2025-03-23 13:31:52,What is disk-based indexing and why is it important for database systems?,redis,0.517716646194458,63.0482611656189,63.565977811813354
 redis_search.py,2025-03-23 13:34:11,"In the context of a relational database system, what is a transaction?",redis,0.12770986557006836,53.3284330368042,53.45614290237427
 redis_search.py,2025-03-23 14:12:21,Describe the differences between horizontal and vertical scaling.,redis,0.06015944480895996,63.5592987537384,63.61945819854736
+redis_search.py,2025-03-23 14:24:45,What is disk-based indexing and why is it important for database systems?,redis,3.271028995513916,107.74250817298889,111.01353716850281
+redis_search.py,2025-03-23 14:26:51,what is redis,redis,0.625715970993042,21.736139059066772,22.361855030059814
