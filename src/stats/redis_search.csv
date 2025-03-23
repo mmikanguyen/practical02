@@ -22,3 +22,4 @@ redis_search.py,2025-03-23 13:21:17,What is the difference between a list where 
 redis_search.py,2025-03-23 13:29:30,What is a linked list,redis,0.07702136039733887,84.60544180870056,84.6824631690979
 redis_search.py,2025-03-23 13:31:52,What is disk-based indexing and why is it important for database systems?,redis,0.517716646194458,63.0482611656189,63.565977811813354
 redis_search.py,2025-03-23 13:34:11,"In the context of a relational database system, what is a transaction?",redis,0.12770986557006836,53.3284330368042,53.45614290237427
+redis_search.py,2025-03-23 14:12:21,Describe the differences between horizontal and vertical scaling.,redis,0.06015944480895996,63.5592987537384,63.61945819854736
