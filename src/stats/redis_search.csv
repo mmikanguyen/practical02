@@ -17,3 +17,6 @@ redis_search.py,2025-03-22 16:37:38,"What is the difference between embedding an
 redis_search.py,2025-03-23 09:30:50,What is a linked list?,redis,0.07167792320251465,50.6218147277832,50.69349265098572
 redis_search.py,2025-03-23 09:32:52,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,redis,0.3006422519683838,81.26175355911255,81.56239581108093
 redis_search.py,2025-03-23 12:39:05,What is a linked list,redis,0.47246837615966797,101.19795751571655,101.67042589187622
+redis_search.py,2025-03-23 13:19:00,What is a linked list?,redis,0.040441274642944336,76.8507022857666,76.89114356040955
+redis_search.py,2025-03-23 13:21:17,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,redis,0.11093926429748535,130.24061155319214,130.35155081748962
+redis_search.py,2025-03-23 13:29:30,What is a linked list,redis,0.07702136039733887,84.60544180870056,84.6824631690979
