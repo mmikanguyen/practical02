@@ -36,32 +36,32 @@ def cosine_similarity(vec1, vec2):
     return model.encode([text])[0]"""
 
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()"""
 
 
-# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-#     try:
-#         response = ollama.embeddings(model=model, prompt=text)
-#         embedding = response["embedding"]
-#
-#         # Verify embedding dimension
-#         if len(embedding) == 0:
-#             print("Warning: Received empty embedding vector")
-#             # Return zero vector of expected dimension as fallback
-#             return [0.0] * VECTOR_DIM
-#
-#         if len(embedding) != VECTOR_DIM:
-#             print(f"Warning: Embedding dimension mismatch. Got {len(embedding)}, expected {VECTOR_DIM}")
-#             # You could pad or truncate the vector here if needed
-#             # For now, we'll raise an exception to make the issue clear
-#             raise ValueError(f"Embedding dimension mismatch: got {len(embedding)}, expected {VECTOR_DIM}")
-#
-#         return embedding
-#     except Exception as e:
-#         print(f"Error generating embedding: {e}")
-#         # Return zero vector as fallback
-#         return [0.0] * VECTOR_DIM
+def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+    try:
+        response = ollama.embeddings(model=model, prompt=text)
+        embedding = response["embedding"]
+
+        # Verify embedding dimension
+        if len(embedding) == 0:
+            print("Warning: Received empty embedding vector")
+        # Return zero vector of expected dimension as fallback
+            return [0.0] * VECTOR_DIM
+
+        if len(embedding) != VECTOR_DIM:
+            print(f"Warning: Embedding dimension mismatch. Got {len(embedding)}, expected {VECTOR_DIM}")
+            # You could pad or truncate the vector here if needed
+            # For now, we'll raise an exception to make the issue clear
+            raise ValueError(f"Embedding dimension mismatch: got {len(embedding)}, expected {VECTOR_DIM}")
+
+        return embedding
+    except Exception as e:
+        print(f"Error generating embedding: {e}")
+        # Return zero vector as fallback
+        return [0.0] * VECTOR_DIM
 
 # def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
 #     return model.encode(text).tolist()

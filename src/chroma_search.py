@@ -36,12 +36,12 @@ def cosine_similarity(vec1, vec2):
 #    return response["embedding"]
 
 
-"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()"""
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
 
-def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+"""def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
     # Generate and return the embedding for the input text
-    return model.encode([text])[0]
+    return model.encode([text])[0]"""
 
 
 def search_embeddings_chroma(query, top_k=3, db="chroma"):

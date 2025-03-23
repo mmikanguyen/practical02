@@ -8,7 +8,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 import ollama
 
-EMBEDDING_MODEL = "nomic-embed"
+EMBEDDING_MODEL = "all-mpnet-base-v2"
 # Anna's port
 #chroma_client = chromadb.HttpClient(host="localhost", port=6381)
 
@@ -28,8 +28,8 @@ def clear_chroma_store():
   #  return response["embedding"]
 
 # sentence_transformers
-#def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    #return model.encode(text).tolist()
+"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()"""
 
 #instructor-xl
 def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:

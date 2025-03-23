@@ -29,11 +29,11 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-CHUNK_SIZE = 300 # should this be a list? go through different chunk sizes ?
-CHUNK_OVERLAP = 50 # is this necessary
+CHUNK_SIZE = 100 # should this be a list? go through different chunk sizes ?
+CHUNK_OVERLAP = 20 # is this necessary
 
 # EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
-EMBEDDING_MODEL = "all-mpnet-base-v2"
+EMBEDDING_MODEL = "nomic-embed-text"
 embedding_model = SentenceTransformer("all-mpnet-base-v2")
 
 
@@ -88,9 +88,9 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
         )
 
 # use for nomic_embed
-# def get_embedding(text, model=EMBEDDING_MODEL):
-#     response = ollama.embeddings(model=model, prompt=text)
-#     return response["embedding"]
+def get_embedding(text, model=EMBEDDING_MODEL):
+    response = ollama.embeddings(model=model, prompt=text)
+    return response["embedding"]
 
 
 # Define the get_embedding function
@@ -98,8 +98,8 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
     # Generate and return the embedding for the input text
     return model.encode([text])[0]"""
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()"""
 
 def extract_text_from_pdf(pdf_path):
     # strip stop words and punctuation??
