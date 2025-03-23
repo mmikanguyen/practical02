@@ -25,9 +25,9 @@ chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
 RESPONSE_MODEL = 'llama2:7b'
 #RESPONSE_MODEL = 'mistral:latest'
 
-# EMBEDDING_MODEL = "all-mpnet-base-v2"
+EMBEDDING_MODEL = "all-mpnet-base-v2"
 # EMBEDDING_MODEL = 'hkunlp/instructor-xl'
-EMBEDDING_MODEL = "nomic-embed-text"
+# EMBEDDING_MODEL = "nomic-embed-text"
 
 
 VECTOR_DIM = 768

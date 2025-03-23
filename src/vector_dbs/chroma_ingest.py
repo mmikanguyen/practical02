@@ -14,9 +14,9 @@ import gc
 
 _model_cache = {}
 
-# EMBEDDING_MODEL = "all-mpnet-base-v2"
+EMBEDDING_MODEL = "all-mpnet-base-v2"
 # EMBEDDING_MODEL = 'hkunlp/instructor-xl'
-EMBEDDING_MODEL = "nomic-embed-text"
+# EMBEDDING_MODEL = "nomic-embed-text"
 
 # Anna's port
 chroma_client = chromadb.HttpClient(host="localhost", port=6381)
