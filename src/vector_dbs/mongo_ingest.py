@@ -25,10 +25,6 @@ VECTOR_DIM = 768
 EMBEDDING_MODEL = "nomic-embed-text"
 
 
-# def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
-#     # Generate and return the embedding for the input text
-#     return model.encode([text])[0]
-
 # Clear MongoDB collection
 def clear_mongo_collection():
     print("Clearing existing MongoDB collection...")
@@ -37,12 +33,37 @@ def clear_mongo_collection():
 
 
 # Get text embedding
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-    response = ollama.embeddings(model=model, prompt=text)
-    return response["embedding"]
+# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+#     response = ollama.embeddings(model=model, prompt=text)
+#     return response["embedding"]
 
 # def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
 #     return model.encode(text).tolist()
+
+# def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
+#     # Generate and return the embedding for the input text
+#     return model.encode([text])[0]
+
+
+def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
+    # Handle Ollama embeddings
+    if model_name == "nomic-embed-text" or model_name.startswith("llama"):
+        response = ollama.embeddings(model=model_name, prompt=text)
+        return response["embedding"]
+
+    # Handle SentenceTransformer models
+    elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
+        model = SentenceTransformer(model_name)
+        return model.encode(text).tolist()
+
+    # Handle instructor models which require special formatting
+    elif model_name == "hkunlp/instructor-xl":
+        model = SentenceTransformer(model_name)
+        return model.encode([text])[0].tolist()
+
+    else:
+        raise ValueError(
+            f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
 
 
 # Store embedding in MongoDB

@@ -14,6 +14,8 @@ from sentence_transformers import SentenceTransformer
 # Embedding models
 # embedding_model = SentenceTransformer("all-mpnet-base-v2")
 embedding_model = 'nomic-embed-text'
+
+
 response_model = 'mistral:latest'
 #response_model = 'llama2:7b'
 
@@ -42,6 +44,27 @@ def cosine_similarity(vec1, vec2):
 #     # Generate and return the embedding for the input text
 #     return model.encode([text])[0]
 
+def get_embedding(text: str, model_name: str = embedding_model) -> list:
+    # Handle Ollama embeddings
+    if model_name == "nomic-embed-text" or model_name.startswith("llama"):
+        response = ollama.embeddings(model=model_name, prompt=text)
+        return response["embedding"]
+
+    # Handle SentenceTransformer models
+    elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
+        model = SentenceTransformer(model_name)
+        return model.encode(text).tolist()
+
+    # Handle instructor models which require special formatting
+    elif model_name == "hkunlp/instructor-xl":
+        model = SentenceTransformer(model_name)
+        return model.encode([text])[0].tolist()
+
+    else:
+        raise ValueError(
+            f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
+
+
 def search_embeddings_mongo(query, top_k=3, db="mongo"):
 
     stats = {
@@ -51,7 +74,7 @@ def search_embeddings_mongo(query, top_k=3, db="mongo"):
 
     start_time = time.time()
 
-    query_embedding = get_embedding(query)
+    query_embedding = get_embedding(query, embedding_model)
 
     # Convert the query embedding to a numpy array
     query_vector = np.array(query_embedding, dtype=np.float32)
@@ -216,7 +239,7 @@ def interactive_search():
                 continue
 
             print(f"Processing query: '{query}'")
-            query_embedding = get_embedding(query)
+            query_embedding = get_embedding(query, embedding_model)
 
             # dont change this or else wont work for instructor
             if query_embedding is None or len(query_embedding) == 0:
