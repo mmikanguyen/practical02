@@ -1,18 +1,1 @@
 file,timestamp,query,database,query_time,generation_time,total_time
-chroma_search.py,2025-03-22 15:00:49,what is redis,chroma,0.1120138168334961,26.40201210975647,26.514025926589966
-chroma_search.py,2025-03-22 15:15:23,what is redis,chroma,0.0643455982208252,152.65822577476501,152.72257137298584
-chroma_search.py,2025-03-22 15:19:27,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,chroma,1.0821282863616943,154.09663772583008,155.17876601219177
-chroma_search.py,2025-03-22 15:22:26,What is disk-based indexing and why is it important for database systems?  ,chroma,1.477518081665039,156.44317746162415,157.92069554328918
-chroma_search.py,2025-03-22 15:27:27,What is disk-based indexing and why is it important for database systems?  ,chroma,1.4715840816497803,93.18667030334473,94.6582543849945
-chroma_search.py,2025-03-22 15:31:45,What is disk-based indexing and why is it important for database systems?  ,chroma,1.2053682804107666,53.871938705444336,55.0773069858551
-chroma_search.py,2025-03-22 15:36:30,"In the context of a relational database system, what is a transaction?  ",chroma,0.15326690673828125,273.366739988327,273.5200068950653
-chroma_search.py,2025-03-22 15:42:04,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,chroma,1.5156598091125488,308.92712807655334,310.4427878856659
-chroma_search.py,2025-03-22 16:44:36,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,chroma,0.6650381088256836,311.2266776561737,311.8917157649994
-chroma_search.py,2025-03-22 17:21:47,What is a linked list?,chroma,0.5249199867248535,182.26836133003235,182.7932813167572
-chroma_search.py,2025-03-22 17:24:46,What is a linked list?,chroma,1.3179914951324463,108.02487349510193,109.34286499023438
-chroma_search.py,2025-03-23 13:09:21,what is a linked list,chroma,5.106382369995117,353.33920907974243,358.44559144973755
-chroma_search.py,2025-03-23 14:04:40,Describe the differences between horizontal and vertical scaling. ,chroma,5.128895998001099,133.22609639167786,138.35499238967896
-chroma_search.py,2025-03-23 14:52:54,What is disk-based indexing and why is it important for database systems?  ,chroma,4.603307008743286,123.59324407577515,128.19655108451843
-chroma_search.py,2025-03-23 14:56:33,What is disk-based indexing and why is it important for database systems?  ,chroma,15.210124969482422,96.28168892860413,111.49181389808655
-chroma_search.py,2025-03-23 15:07:11,What is disk-based indexing and why is it important for database systems?,chroma,0.0489962100982666,148.12237215042114,148.1713683605194
-chroma_search.py,2025-03-23 15:12:01,What is disk-based indexing and why is it important for database systems?,chroma,1.73061203956604,196.45951890945435,198.19013094902039

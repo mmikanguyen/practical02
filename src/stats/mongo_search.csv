@@ -1,24 +1,2 @@
 file,timestamp,query,database,query_time,generation_time,total_time
-mongo_search.py,2025-03-22 14:56:53,what is redis,mongo,0.16646790504455566,23.30167007446289,23.468137979507446
-mongo_search.py,2025-03-22 16:06:27,"What are the core stages of the MongoDB aggregation pipeline, and how can they be combined for complex data processing?",mongo,1.1024377346038818,42.43395400047302,43.536391735076904
-mongo_search.py,2025-03-22 16:08:53,"What are the core stages of the MongoDB aggregation pipeline, and how can they be combined for complex data processing?",mongo,0.0428011417388916,27.791167974472046,27.833969116210938
-mongo_search.py,2025-03-22 16:09:31,"What is the difference between embedding and referencing when modeling relationships in MongoDB, and when should each approach be used?",mongo,0.23777508735656738,25.650207996368408,25.887983083724976
-mongo_search.py,2025-03-22 16:10:16,"How does the CAP theorem apply to distributed databases, and what trade-offs must be considered when designing a system?",mongo,0.04763507843017578,36.450514793395996,36.49814987182617
-mongo_search.py,2025-03-22 16:42:24,"What is the difference between embedding and referencing when modeling relationships in MongoDB, and when should each approach be used?",mongo,0.05450105667114258,35.203428745269775,35.25792980194092
-mongo_search.py,2025-03-22 17:30:00,What is a linked list?,mongo,0.1380913257598877,71.72274875640869,71.86084008216858
-mongo_search.py,2025-03-22 17:31:59,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,mongo,0.17765140533447266,92.47202515602112,92.64967656135559
-mongo_search.py,2025-03-22 17:33:36,What is a linked list,mongo,0.06749272346496582,21.75191831588745,21.819411039352417
-mongo_search.py,2025-03-22 17:38:12,What is a linked list,mongo,0.08564257621765137,26.39631724357605,26.4819598197937
-mongo_search.py,2025-03-22 17:39:17,What is a linked list?,mongo,0.04870319366455078,20.499895095825195,20.548598289489746
-mongo_search.py,2025-03-22 17:40:13,"from transformers import AutoTokenizer, AutoModel",mongo,0.05556607246398926,49.82043814659119,49.876004219055176
-mongo_search.py,2025-03-22 17:41:41,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,mongo,0.08289837837219238,55.65243649482727,55.73533487319946
-mongo_search.py,2025-03-23 09:20:11,What is a linked list?,mongo,0.1196293830871582,107.64434909820557,107.76397848129272
-mongo_search.py,2025-03-23 09:25:54,What is a linked list?,mongo,0.09511375427246094,149.52176308631897,149.61687684059143
-mongo_search.py,2025-03-23 12:59:48,What is a linked list?,mongo,0.9240627288818359,336.32467818260193,337.24874091148376
-mongo_search.py,2025-03-23 13:31:55,What is the difference between a list where memory is contiguously allocated and a list where linked structures are used?,mongo,0.05122208595275879,202.8023660182953,202.85358810424805
-mongo_search.py,2025-03-23 13:33:30,When are linked lists faster than contiguously-allocated lists?,mongo,0.06378293037414551,79.7015700340271,79.76535296440125
-mongo_search.py,2025-03-23 13:42:46,"In the context of a relational database system, what is a transaction?",mongo,0.09299278259277344,380.9519889354706,381.04498171806335
-mongo_search.py,2025-03-23 13:47:23,"In the context of a relational database system, what is a transaction?",mongo,0.09818005561828613,95.30615496635437,95.40433502197266
-mongo_search.py,2025-03-23 13:53:39,WHAT IS REDIS,mongo,1.4788649082183838,26.991435766220093,28.470300674438477
-mongo_search.py,2025-03-23 14:00:35,What is disk-based indexing and why is it important for database systems?,mongo,0.6204862594604492,398.76204085350037,399.3825271129608
-mongo_search.py,2025-03-23 14:05:16,what is redis,mongo,0.04114508628845215,23.08585786819458,23.127002954483032
+
