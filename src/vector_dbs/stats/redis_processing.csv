@@ -16,3 +16,8 @@ redis,all-mpnet-base-v2,0.2902240753173828,78.59241557121277,13,207
 redis,nomic-embed-text,0.8219490051269531,49.21545934677124,13,207
 redis,nomic-embed-text,0.7839384078979492,20.974467039108276,13,207
 redis,nomic-embed-text,0.7760190963745117,10.986550092697144,13,207
+redis,"SentenceTransformer(
+  (0): Transformer({'max_seq_length': 384, 'do_lower_case': False}) with Transformer model: MPNetModel 
+  (1): Pooling({'word_embedding_dimension': 768, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})
+  (2): Normalize()
+)",0.29022789001464844,55.92221403121948,13,207
