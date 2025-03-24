@@ -16,12 +16,12 @@ from redis.commands.search.field import VectorField, TextField
 
 
 # Embedding models
-# embedding_model = "all-mpnet-base-v2"
-embedding_model = 'nomic-embed-text'
+embedding_model = SentenceTransformer("all-mpnet-base-v2")
+#embedding_model = 'nomic-embed-text'
 
 
-# response_model = "mistral:latest"
-response_model = 'llama2:7b'
+response_model = "mistral:latest"
+#response_model = 'llama2:7b'
 
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
@@ -40,11 +40,11 @@ def cosine_similarity(vec1, vec2):
     return model.encode([text])[0]"""
 
 
-"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()"""
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
 
 
-def get_embedding(text: str, model_name: str = embedding_model) -> list:
+"""def get_embedding(text: str, model_name: str = embedding_model) -> list:
     # Handle Ollama embeddings
     if model_name == "nomic-embed-text" or model_name.startswith("llama"):
         response = ollama.embeddings(model=model_name, prompt=text)
@@ -63,7 +63,7 @@ def get_embedding(text: str, model_name: str = embedding_model) -> list:
     else:
         raise ValueError(
             f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
-
+"""
 # def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 #     try:
 #         response = ollama.embeddings(model=model, prompt=text)

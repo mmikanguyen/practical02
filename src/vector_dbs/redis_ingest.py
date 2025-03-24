@@ -33,8 +33,8 @@ CHUNK_SIZE = 100 # should this be a list? go through different chunk sizes ?
 CHUNK_OVERLAP = 20 # is this necessary
 
 # EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
-EMBEDDING_MODEL = "nomic-embed-text"
-# EMBEDDING_MODEL = "all-mpnet-base-v2"
+# EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = SentenceTransformer("all-mpnet-base-v2")
 
 
 def get_redis_connection():
@@ -98,10 +98,10 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
     # Generate and return the embedding for the input text
     return model.encode([text])[0]"""
 
-"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()"""
+def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()
 
-def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
+"""def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
     # Handle Ollama embeddings
     if model_name == "nomic-embed-text" or model_name.startswith("llama"):
         response = ollama.embeddings(model=model_name, prompt=text)
@@ -120,7 +120,7 @@ def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
     else:
         raise ValueError(
             f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
-
+"""
 def extract_text_from_pdf(pdf_path):
     # strip stop words and punctuation??
 
