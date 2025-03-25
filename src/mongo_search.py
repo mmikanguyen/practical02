@@ -12,7 +12,7 @@ from sentence_transformers import SentenceTransformer
 
 
 # Embedding models
-# embedding_model = SentenceTransformer("all-mpnet-base-v2")
+# embedding_model = "all-mpnet-base-v2"
 embedding_model = 'nomic-embed-text'
 # embedding_model = 'hkunlp/instructor-xl'
 
@@ -197,7 +197,9 @@ def log_stats_to_csv(stats, query, file_path):
         'database',
         'query_time',
         'generation_time',
-        'total_time'
+        'total_time',
+        'embedding_model',
+        'llm'
     ]
 
     file_exists = os.path.isfile(file_path)
@@ -210,7 +212,9 @@ def log_stats_to_csv(stats, query, file_path):
         'database': stats.get('database_used', 'unknown'),
         'query_time': stats.get('query_time', 0),
         'generation_time': stats.get('generation_time', 0),
-        'total_time': stats.get('total_time', 0)
+        'total_time': stats.get('total_time', 0),
+        'embedding_model': embedding_model,
+        'llm': response_model
     }
 
     with open(file_path, mode='a', newline='') as file:

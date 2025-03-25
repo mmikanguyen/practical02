@@ -12,14 +12,11 @@ from redis.commands.search.query import Query
 import datetime
 import csv
 from redis.commands.search.field import VectorField, TextField
-
 from sentence_transformers import SentenceTransformer
-# Embedding models
-# embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 Anna = 6381
 Mika = 8000
-chroma_client = chromadb.HttpClient(host="localhost", port=Anna)
+chroma_client = chromadb.HttpClient(host="localhost", port=Mika)
 chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
 
 RESPONSE_MODEL = 'llama2:7b'
@@ -204,7 +201,9 @@ def log_stats_to_csv(stats, query, file_path):
         'database',
         'query_time',
         'generation_time',
-        'total_time'
+        'total_time',
+        'embedding_model',
+        'llm'
     ]
 
     file_exists = os.path.isfile(file_path)
@@ -217,7 +216,9 @@ def log_stats_to_csv(stats, query, file_path):
         'database': stats.get('database_used', 'unknown'),
         'query_time': stats.get('query_time', 0),
         'generation_time': stats.get('generation_time', 0),
-        'total_time': stats.get('total_time', 0)
+        'total_time': stats.get('total_time', 0),
+        'embedding_model': EMBEDDING_MODEL,
+        'llm': RESPONSE_MODEL
     }
 
     with open(file_path, mode='a', newline='') as file:

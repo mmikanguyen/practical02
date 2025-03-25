@@ -18,11 +18,14 @@ EMBEDDING_MODEL = "all-mpnet-base-v2"
 # EMBEDDING_MODEL = 'hkunlp/instructor-xl'
 # EMBEDDING_MODEL = "nomic-embed-text"
 
+CHUNK_SIZE=100
+CHUNK_OVERLAP=20
+
 # Anna's port
-chroma_client = chromadb.HttpClient(host="localhost", port=6381)
+#chroma_client = chromadb.HttpClient(host="localhost", port=6381)
 
 # Mika's port
-# chroma_client = chromadb.HttpClient(host="localhost", port=8000)
+chroma_client = chromadb.HttpClient(host="localhost", port=8000)
 collection = chroma_client.get_or_create_collection(name="embeddings")
 VECTOR_DIM = 768
 
@@ -86,7 +89,7 @@ def extract_text_from_pdf(pdf_path):
     return text_by_page
 
 
-def split_text_into_chunks(text, chunk_size=100, overlap=20):
+def split_text_into_chunks(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_size - overlap):
@@ -160,18 +163,22 @@ def process_pdfs(data_dir):
 
 def main():
     # Set the start method to 'spawn' which is less prone to resource leaks
-    if __name__ == "__main__" and multiprocessing.get_start_method() != 'spawn':
-        multiprocessing.set_start_method('spawn', force=True)
+    #if __name__ == "__main__" and multiprocessing.get_start_method() != 'spawn':
+    #    multiprocessing.set_start_method('spawn', force=True)
 
     clear_chroma_store()
     process_pdfs("../../data/")
 
     # Add explicit cleanup
+    """
     gc.collect()
 
     # If you're using a SentenceTransformer model, try to clean it up explicitly
     if 'model' in globals():
         del model
-        gc.collect()
+        gc.collect()"""
 
     print("\n--- Done processing PDFs ---\n")
+
+if __name__ == "__main__":
+    main()
