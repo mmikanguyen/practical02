@@ -158,7 +158,7 @@ def process_pdfs(data_dir):
                              "chunk_overlap"])
 
         # Append the new stats to the CSV
-        writer.writerow(["mongo",
+        writer.writerow(["chroma",
                          EMBEDDING_MODEL,
                          peak_memory / 1024 / 1024,
                          elapsed_time,

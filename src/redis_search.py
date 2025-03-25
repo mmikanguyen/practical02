@@ -264,7 +264,7 @@ def log_stats_to_csv(stats, query, file_path):
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = {
-        'file': "chroma_search.py",
+        'file': "redis_search.py",
         'timestamp': timestamp,
         'query': query,
         'database': stats.get('database_used', 'unknown'),

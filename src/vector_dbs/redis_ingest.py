@@ -297,7 +297,7 @@ def main():
                              "chunk_overlap"])
 
         # Append the new stats to the CSV
-        writer.writerow(["mongo",
+        writer.writerow(["redis",
                          EMBEDDING_MODEL,
                          peak_memory / 1024 / 1024,
                          elapsed_time,
