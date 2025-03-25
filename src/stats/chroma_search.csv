@@ -1,2 +1,0 @@
-file,timestamp,query,database,query_time,generation_time,total_time
-chroma_search.py,2025-03-24 22:00:11,test,chroma,0.6547701358795166,51.7131290435791,52.36789917945862,all-mpnet-base-v2,llama2:7b

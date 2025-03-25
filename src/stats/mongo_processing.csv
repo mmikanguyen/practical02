@@ -1,3 +1,0 @@
-Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s), Total Documents,Total Chunks
-
-mongo,nomic-embed-text,0.904505729675293,52.92141795158386,13,207

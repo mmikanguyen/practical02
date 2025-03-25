@@ -1,3 +1,0 @@
-Vector DB,Embedding Model,Peak Memory (MB),Total Processing Time (s),Total Documents,Total Chunks
-
-chroma,all-mpnet-base-v2,13.810831069946289,65.32727456092834,13,207

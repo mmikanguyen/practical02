@@ -10,7 +10,6 @@ import csv
 from sentence_transformers import SentenceTransformer
 
 
-
 # Embedding models
 # embedding_model = "all-mpnet-base-v2"
 embedding_model = 'nomic-embed-text'

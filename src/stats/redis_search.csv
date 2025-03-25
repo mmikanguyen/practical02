@@ -1,2 +1,0 @@
-file,timestamp,query,database,query_time,generation_time,total_time, embedding_model, llm
-redis_search.py,2025-03-24 21:39:25,test,redis,3.2775449752807617,40.91919255256653,44.19673752784729,all-mpnet-base-v2,mistral:latest
