@@ -1,1 +1,1 @@
-file,timestamp,query,database,query_time,generation_time,total_time
+file,timestamp,query,database,query_time,generation_time,total_time, embedding_model, llm
