@@ -41,11 +41,11 @@ def cosine_similarity(vec1, vec2):
     return model.encode([text])[0]"""
 
 
-def get_embedding(text: str, model: str = "all-mpnet-base-v2") -> list:
-    return SentenceTransformer(model).encode(text).tolist()
+"""def get_embedding(text: str, model: str = "all-mpnet-base-v2") -> list:
+    return SentenceTransformer(model).encode(text).tolist()"""
 
 
-"""def get_embedding(text: str, model_name: str = embedding_model) -> list:
+def get_embedding(text: str, model_name: str = embedding_model) -> list:
     # Handle Ollama embeddings
     if model_name == "nomic-embed-text" or model_name.startswith("llama"):
         response = ollama.embeddings(model=model_name, prompt=text)
@@ -64,7 +64,7 @@ def get_embedding(text: str, model: str = "all-mpnet-base-v2") -> list:
     else:
         raise ValueError(
             f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
-"""
+
 # def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 #     try:
 #         response = ollama.embeddings(model=model, prompt=text)
@@ -88,8 +88,7 @@ def get_embedding(text: str, model: str = "all-mpnet-base-v2") -> list:
 #         # Return zero vector as fallback
 #         return [0.0] * VECTOR_DIM
 
-# def get_embedding(text: str, model: str = SentenceTransformer("all-MiniLM-L6-v2")) -> list:
-#     return model.encode(text).tolist()
+
 
 
 def search_embeddings_redis(query, top_k=3, db="redis"):

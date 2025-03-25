@@ -19,6 +19,8 @@ from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+CHUNK_SIZE = 100
+CHUNK_OVERLAP = 20
 
 REDIS_HOST = "localhost"
 REDIS_PORT = 6380
@@ -29,12 +31,9 @@ INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
 
-CHUNK_SIZE = 100 # should this be a list? go through different chunk sizes ?
-CHUNK_OVERLAP = 20 # is this necessary
-
-# EMBEDDING_MODEL = "nomic-embed-text" # same Q as above - list of 3 diff embedding models
 # EMBEDDING_MODEL = "nomic-embed-text"
-EMBEDDING_MODEL = SentenceTransformer("all-mpnet-base-v2")
+# EMBEDDING_MODEL = 'hkunlp/instructor-xl'
+EMBEDDING_MODEL = "all-mpnet-base-v2"
 
 
 def get_redis_connection():
@@ -92,16 +91,15 @@ def store_document_chunk(redis_client, document_id, page_num, chunk_id, text, em
 #     response = ollama.embeddings(model=model, prompt=text)
 #     return response["embedding"]
 
-
 # Define the get_embedding function
 """def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
     # Generate and return the embedding for the input text
     return model.encode([text])[0]"""
 
-def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-    return model.encode(text).tolist()
+"""def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
+    return model.encode(text).tolist()"""
 
-"""def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
+def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
     # Handle Ollama embeddings
     if model_name == "nomic-embed-text" or model_name.startswith("llama"):
         response = ollama.embeddings(model=model_name, prompt=text)
@@ -120,7 +118,7 @@ def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2
     else:
         raise ValueError(
             f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
-"""
+
 def extract_text_from_pdf(pdf_path):
     # strip stop words and punctuation??
 
@@ -299,7 +297,6 @@ def main():
             "redis", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time,
             total_documents, total_chunks
         ])
-
 
 main()
 
