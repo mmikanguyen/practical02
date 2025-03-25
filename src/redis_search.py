@@ -13,6 +13,8 @@ from redis.commands.search.query import Query
 import datetime
 import csv
 from redis.commands.search.field import VectorField, TextField
+from src.vector_dbs.redis_ingest import CHUNK_SIZE
+from src.vector_dbs.redis_ingest import CHUNK_OVERLAP
 
 
 # Embedding models
@@ -23,6 +25,9 @@ embedding_model = "all-mpnet-base-v2"
 # LLM
 response_model = "mistral:latest"
 #response_model = 'llama2:7b'
+
+CHUNK_SIZE = CHUNK_SIZE
+CHUNK_OVERLAP=CHUNK_OVERLAP
 
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
 
@@ -246,26 +251,30 @@ def log_stats_to_csv(stats, query, file_path):
         'timestamp',
         'query',
         'database',
+        'embedding_model',
+        'llm',
         'query_time',
         'generation_time',
         'total_time',
-        'embedding_model',
-        'llm'
+        "chunk_size",
+        "chunk_overlap"
     ]
 
     file_exists = os.path.isfile(file_path)
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     row = {
-        'file': "redis_search.py",
+        'file': "chroma_search.py",
         'timestamp': timestamp,
         'query': query,
         'database': stats.get('database_used', 'unknown'),
+        'embedding_model': embedding_model,
+        'llm': response_model,
         'query_time': stats.get('query_time', 0),
         'generation_time': stats.get('generation_time', 0),
         'total_time': stats.get('total_time', 0),
-        'embedding_model': embedding_model,
-        'llm': response_model
+        'chunk_size': CHUNK_SIZE,
+        'chunk_overlap': CHUNK_OVERLAP
     }
 
     with open(file_path, mode='a', newline='') as file:

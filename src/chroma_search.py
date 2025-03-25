@@ -13,6 +13,8 @@ import datetime
 import csv
 from redis.commands.search.field import VectorField, TextField
 from sentence_transformers import SentenceTransformer
+from src.vector_dbs.chroma_ingest import CHUNK_SIZE
+from src.vector_dbs.chroma_ingest import CHUNK_OVERLAP
 
 Anna = 6381
 Mika = 8000
@@ -26,6 +28,8 @@ EMBEDDING_MODEL = "all-mpnet-base-v2"
 # EMBEDDING_MODEL = 'hkunlp/instructor-xl'
 # EMBEDDING_MODEL = "nomic-embed-text"
 
+CHUNK_SIZE = CHUNK_SIZE
+CHUNK_OVERLAP = CHUNK_OVERLAP
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
@@ -199,11 +203,13 @@ def log_stats_to_csv(stats, query, file_path):
         'timestamp',
         'query',
         'database',
+        'embedding_model',
+        'llm',
         'query_time',
         'generation_time',
         'total_time',
-        'embedding_model',
-        'llm'
+        "chunk_size",
+        "chunk_overlap"
     ]
 
     file_exists = os.path.isfile(file_path)
@@ -214,11 +220,13 @@ def log_stats_to_csv(stats, query, file_path):
         'timestamp': timestamp,
         'query': query,
         'database': stats.get('database_used', 'unknown'),
+        'embedding_model': EMBEDDING_MODEL,
+        'llm': RESPONSE_MODEL,
         'query_time': stats.get('query_time', 0),
         'generation_time': stats.get('generation_time', 0),
         'total_time': stats.get('total_time', 0),
-        'embedding_model': EMBEDDING_MODEL,
-        'llm': RESPONSE_MODEL
+        'chunk_size': CHUNK_SIZE,
+        'chunk_overlap': CHUNK_OVERLAP
     }
 
     with open(file_path, mode='a', newline='') as file:

@@ -285,18 +285,26 @@ def main():
     with open(stats_path, mode='a', newline='') as file:
         writer = csv.writer(file)
 
-        # Write header only if the file does not already exist
-        if not file_exists:
-            writer.writerow([
-                "Vector DB", "Embedding Model", "Peak Memory (MB)",
-                "Total Processing Time (s)", "Total Documents", "Total Chunks"
-            ])
+        # Write header only if the file is empty
+        if file.tell() == 0:
+            writer.writerow(["vector_db",
+                             "embedding_model",
+                             "peak_memory_mb",
+                             "total_processing_time",
+                             "docs_processed",
+                             "chunks_processed",
+                             "chunk_size",
+                             "chunk_overlap"])
 
         # Append the new stats to the CSV
-        writer.writerow([
-            "redis", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time,
-            total_documents, total_chunks
-        ])
+        writer.writerow(["mongo",
+                         EMBEDDING_MODEL,
+                         peak_memory / 1024 / 1024,
+                         elapsed_time,
+                         total_documents,
+                         total_chunks,
+                         CHUNK_SIZE,
+                         CHUNK_OVERLAP])
 
 main()
 

@@ -1,0 +1,2 @@
+vector_db,embedding_model,peak_memory_mb,total_processing_time,docs_processed,chunks_processed,chunk_size,chunk_overlap
+mongo,nomic-embed-text,0.9059543609619141,63.83273530006409,13,207,100,20

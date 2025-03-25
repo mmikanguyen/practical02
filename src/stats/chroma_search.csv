@@ -1,0 +1,2 @@
+file, timestamp, query, database, embedding_model, llm, query_time, generation_time, total_time, chunk_size, chunk_overlap
+chroma_search.py,2025-03-24 22:24:21,test,chroma,all-mpnet-base-v2,llama2:7b,0.5936176776885986,1.1274266242980957,1.7210443019866943,100,20

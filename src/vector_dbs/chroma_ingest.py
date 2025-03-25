@@ -148,10 +148,24 @@ def process_pdfs(data_dir):
 
         # Write header only if the file is empty
         if file.tell() == 0:
-            writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Documents Processed", "Chunks Processed"])
+            writer.writerow(["vector_db",
+                             "embedding_model",
+                             "peak_memory_mb",
+                             "total_processing_time",
+                             "docs_processed",
+                             "chunks_processed",
+                             "chunk_size",
+                             "chunk_overlap"])
 
         # Append the new stats to the CSV
-        writer.writerow(["chroma", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
+        writer.writerow(["mongo",
+                         EMBEDDING_MODEL,
+                         peak_memory / 1024 / 1024,
+                         elapsed_time,
+                         document_count,
+                         chunk_count,
+                         CHUNK_SIZE,
+                         CHUNK_OVERLAP])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")

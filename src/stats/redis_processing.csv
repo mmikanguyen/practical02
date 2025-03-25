@@ -1,0 +1,3 @@
+vector_db,embedding_model,peak_memory_mb,total_processing_time,docs_processed,chunks_processed,chunk_size,chunk_overlap
+mongo,all-mpnet-base-v2,0.0070705413818359375,0.0016663074493408203,0,0,100,20
+mongo,all-mpnet-base-v2,0.0070705413818359375,0.0009975433349609375,0,0,100,20

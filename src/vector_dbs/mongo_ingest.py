@@ -19,11 +19,13 @@ db = client["embedding_db"]
 collection = db["embeddings"]
 
 # Embedding model and vector dimension
-VECTOR_DIM = 768
 # EMBEDDING_MODEL = "hkunlp/instructor-xl"
 EMBEDDING_MODEL = "nomic-embed-text"
 #EMBEDDING_MODEL = "all-mpnet-base-v2"
+CHUNK_SIZE = 100
+CHUNK_OVERLAP = 20
 
+VECTOR_DIM = 768
 
 # Clear MongoDB collection
 def clear_mongo_collection():
@@ -85,7 +87,7 @@ def extract_text_from_pdf(pdf_path):
 
 
 # Split text into chunks with overlap
-def split_text_into_chunks(text, chunk_size=100, overlap=20):
+def split_text_into_chunks(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     words = text.split()
     return [" ".join(words[i: i + chunk_size]) for i in range(0, len(words), chunk_size - overlap)]
 
@@ -141,10 +143,24 @@ def process_pdfs(data_dir):
 
         # Write header only if the file is empty
         if file.tell() == 0:
-            writer.writerow(["Vector DB", "Embedding Model", "Peak Memory (MB)", "Total Processing Time (s)", "Documents Processed", "Chunks Processed"])
+            writer.writerow(["vector_db",
+                             "embedding_model",
+                             "peak_memory_mb",
+                             "total_processing_time",
+                             "docs_processed",
+                             "chunks_processed",
+                             "chunk_size",
+                             "chunk_overlap"])
 
         # Append the new stats to the CSV
-        writer.writerow(["mongo", EMBEDDING_MODEL, peak_memory / 1024 / 1024, elapsed_time, document_count, chunk_count])
+        writer.writerow(["mongo",
+                         EMBEDDING_MODEL,
+                         peak_memory / 1024 / 1024,
+                         elapsed_time,
+                         document_count,
+                         chunk_count,
+                         CHUNK_SIZE,
+                         CHUNK_OVERLAP])
 
     print(f"Total processing time: {elapsed_time:.2f}s")
     print(f"Peak memory usage: {peak_memory / 1024 / 1024:.2f} MB")
