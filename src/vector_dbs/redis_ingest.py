@@ -274,7 +274,7 @@ def main():
     print(f"Total documents processed: {total_documents}")
     print(f"Total chunks processed: {total_chunks}")
 
-    stats_dir = "stats"
+    stats_dir = os.path.join(os.path.dirname(__file__), "..", "stats")
     os.makedirs(stats_dir, exist_ok=True)
     stats_path = os.path.join(stats_dir, "redis_processing.csv")
 
