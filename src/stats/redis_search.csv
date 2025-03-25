@@ -1,2 +1,1 @@
 file, timestamp, query, database, embedding_model, llm, query_time, generation_time, total_time, chunk_size, chunk_overlap
-chroma_search.py,2025-03-24 22:27:00,test,redis,all-mpnet-base-v2,mistral:latest,0.7382261753082275,115.08779954910278,115.82602572441101,100,20

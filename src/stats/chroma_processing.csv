@@ -1,2 +1,2 @@
 vector_db,embedding_model,peak_memory_mb,total_processing_time,docs_processed,chunks_processed,chunk_size,chunk_overlap
-mongo,all-mpnet-base-v2,13.811361312866211,85.0984456539154,13,207,100,20
+

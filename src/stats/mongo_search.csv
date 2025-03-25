@@ -1,2 +1,1 @@
 file, timestamp, query, database, embedding_model, llm, query_time, generation_time, total_time, chunk_size, chunk_overlap
-chroma_search.py,2025-03-24 22:27:00,test,mongo,nomic-embed-text,mistral:latest,0.07914447784423828,119.07967233657837,119.15881681442261,100,20
