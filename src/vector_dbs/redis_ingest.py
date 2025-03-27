@@ -21,9 +21,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 CHUNK_SIZE = 200
 CHUNK_OVERLAP = 20
-#EMBEDDING_MODEL = "all-mpnet-base-v2"
+EMBEDDING_MODEL = "all-mpnet-base-v2"
 #EMBEDDING_MODEL = "nomic-embed-text"
-EMBEDDING_MODEL = 'hkunlp/instructor-xl'
+#EMBEDDING_MODEL = 'hkunlp/instructor-xl'
 
 REDIS_HOST = "localhost"
 REDIS_PORT = 6380

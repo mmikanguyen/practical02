@@ -22,8 +22,8 @@ Mika = 8000
 chroma_client = chromadb.HttpClient(host="localhost", port=Mika)
 chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
 
-RESPONSE_MODEL = 'llama2:7b'
-#RESPONSE_MODEL = 'mistral:latest'
+#RESPONSE_MODEL = 'llama2:7b'
+RESPONSE_MODEL = 'mistral:latest'
 
 EMBEDDING_MODEL = EMBEDDING_MODEL
 CHUNK_SIZE = CHUNK_SIZE
@@ -278,8 +278,8 @@ def interactive_search():
                 print(response)
 
                 # Give the user time to read the response
-                print("\nPress Enter to continue...", end="", flush=True)
-                input()
+                #print("\nPress Enter to continue...", end="", flush=True)
+                #input()
 
             except ValueError as e:
                 print(f"Error during search: {str(e)}")
