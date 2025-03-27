@@ -15,22 +15,19 @@ import csv
 from redis.commands.search.field import VectorField, TextField
 from src.vector_dbs.redis_ingest import CHUNK_SIZE
 from src.vector_dbs.redis_ingest import CHUNK_OVERLAP
-
+from src.vector_dbs.redis_ingest import EMBEDDING_MODEL
 
 # Embedding models
-embedding_model = "all-mpnet-base-v2"
-#embedding_model = 'nomic-embed-text'
-#embedding_model = 'hkunlp/instructor-xl'
-
+embedding_model = EMBEDDING_MODEL
+# chunks
+CHUNK_SIZE = CHUNK_SIZE
+CHUNK_OVERLAP=CHUNK_OVERLAP
 # LLM
 response_model = "mistral:latest"
 #response_model = 'llama2:7b'
 
-CHUNK_SIZE = CHUNK_SIZE
-CHUNK_OVERLAP=CHUNK_OVERLAP
-
+# redis connection
 redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
-
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
@@ -40,15 +37,6 @@ DISTANCE_METRIC = "COSINE"
 def cosine_similarity(vec1, vec2):
     """Calculate cosine similarity between two vectors."""
     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-
-"""def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
-    # Generate and return the embedding for the input text
-    return model.encode([text])[0]"""
-
-
-"""def get_embedding(text: str, model: str = "all-mpnet-base-v2") -> list:
-    return SentenceTransformer(model).encode(text).tolist()"""
-
 
 def get_embedding(text: str, model_name: str = embedding_model) -> list:
     # Handle Ollama embeddings
@@ -69,31 +57,6 @@ def get_embedding(text: str, model_name: str = embedding_model) -> list:
     else:
         raise ValueError(
             f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
-
-# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-#     try:
-#         response = ollama.embeddings(model=model, prompt=text)
-#         embedding = response["embedding"]
-#
-#         # Verify embedding dimension
-#         if len(embedding) == 0:
-#             print("Warning: Received empty embedding vector")
-#         # Return zero vector of expected dimension as fallback
-#             return [0.0] * VECTOR_DIM
-#
-#         if len(embedding) != VECTOR_DIM:
-#             print(f"Warning: Embedding dimension mismatch. Got {len(embedding)}, expected {VECTOR_DIM}")
-#             # You could pad or truncate the vector here if needed
-#             # For now, we'll raise an exception to make the issue clear
-#             raise ValueError(f"Embedding dimension mismatch: got {len(embedding)}, expected {VECTOR_DIM}")
-#
-#         return embedding
-#     except Exception as e:
-#         print(f"Error generating embedding: {e}")
-#         # Return zero vector as fallback
-#         return [0.0] * VECTOR_DIM
-
-
 
 
 def search_embeddings_redis(query, top_k=3, db="redis"):

@@ -15,6 +15,7 @@ from redis.commands.search.field import VectorField, TextField
 from sentence_transformers import SentenceTransformer
 from src.vector_dbs.chroma_ingest import CHUNK_SIZE
 from src.vector_dbs.chroma_ingest import CHUNK_OVERLAP
+from src.vector_dbs.chroma_ingest import EMBEDDING_MODEL
 
 Anna = 6381
 Mika = 8000
@@ -24,10 +25,7 @@ chroma_collection = chroma_client.get_or_create_collection(name="embeddings")
 RESPONSE_MODEL = 'llama2:7b'
 #RESPONSE_MODEL = 'mistral:latest'
 
-EMBEDDING_MODEL = "all-mpnet-base-v2"
-# EMBEDDING_MODEL = 'hkunlp/instructor-xl'
-# EMBEDDING_MODEL = "nomic-embed-text"
-
+EMBEDDING_MODEL = EMBEDDING_MODEL
 CHUNK_SIZE = CHUNK_SIZE
 CHUNK_OVERLAP = CHUNK_OVERLAP
 

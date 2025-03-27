@@ -19,8 +19,11 @@ from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-CHUNK_SIZE = 100
+CHUNK_SIZE = 200
 CHUNK_OVERLAP = 20
+#EMBEDDING_MODEL = "all-mpnet-base-v2"
+#EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = 'hkunlp/instructor-xl'
 
 REDIS_HOST = "localhost"
 REDIS_PORT = 6380
@@ -30,11 +33,6 @@ VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
 DOC_PREFIX = "doc:"
 DISTANCE_METRIC = "COSINE"
-
-# EMBEDDING_MODEL = "nomic-embed-text"
-# EMBEDDING_MODEL = 'hkunlp/instructor-xl'
-EMBEDDING_MODEL = "all-mpnet-base-v2"
-
 
 def get_redis_connection():
     return redis.Redis(
