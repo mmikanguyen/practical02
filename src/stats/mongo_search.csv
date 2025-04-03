@@ -1,6 +1,4 @@
 file, timestamp, query, database, embedding_model, llm, query_time, generation_time, total_time, chunk_size, chunk_overlap
-chroma_search.py,2025-04-02 20:54:00,What does the $gte operator mean in a Mongo query?,mongo,hkunlp/instructor-xl,mistral:latest,2.4055490493774414,74.63391971588135,77.03946876525879,100,20
-chroma_search.py,2025-04-02 20:55:24,"In Redis, what is the difference between the INC and INCR commands?",mongo,hkunlp/instructor-xl,mistral:latest,3.888484239578247,40.68247437477112,44.570958614349365,100,20
 chroma_search.py,2025-04-02 21:08:41,What does the $gte operator mean in a Mongo query?,mongo,all-mpnet-base-v2,mistral:latest,0.6124351024627686,105.20786666870117,105.82030177116394,100,20
 chroma_search.py,2025-04-02 21:11:17,"In Redis, what is the difference between the INC and INCR commands?",mongo,all-mpnet-base-v2,mistral:latest,1.0309503078460693,143.80812621116638,144.83907651901245,100,20
 chroma_search.py,2025-04-02 21:15:42,What does the $gte operator mean in a Mongo query?,mongo,all-mpnet-base-v2,llama2:7b,1.065669298171997,121.6702332496643,122.7359025478363,100,20
