@@ -1,17 +1,21 @@
 import os
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["OMP_NUM_THREADS"] = "1"  # Limit OpenMP threading
+os.environ["MKL_NUM_THREADS"] = "1"  # Limit MKL threading
 
 import ollama
 import pymongo
 import numpy as np
-import os
 import fitz
 import time
 import psutil
 import tracemalloc
 import csv
+import gc
 from bson.binary import Binary
 from sentence_transformers import SentenceTransformer
+import threading
 
 # MongoDB connection
 client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -20,12 +24,16 @@ collection = db["embeddings"]
 
 # Embedding model and vector dimension
 # EMBEDDING_MODEL = "hkunlp/instructor-xl"
-EMBEDDING_MODEL = "nomic-embed-text"
-#EMBEDDING_MODEL = "all-mpnet-base-v2"
-CHUNK_SIZE = 100
+# EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = "all-mpnet-base-v2"
+CHUNK_SIZE = 200
 CHUNK_OVERLAP = 20
 
 VECTOR_DIM = 768
+
+# Thread-local storage for model instances
+thread_local = threading.local()
+
 
 # Clear MongoDB collection
 def clear_mongo_collection():
@@ -34,42 +42,55 @@ def clear_mongo_collection():
     print("MongoDB collection cleared.")
 
 
-# Get text embedding
-# def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-#     response = ollama.embeddings(model=model, prompt=text)
-#     return response["embedding"]
-
-# def get_embedding(text: str, model: str = SentenceTransformer("all-mpnet-base-v2")) -> list:
-#     return model.encode(text).tolist()
-
-# def get_embedding(text: str, model: SentenceTransformer = SentenceTransformer("hkunlp/instructor-xl")) -> list:
-#     # Generate and return the embedding for the input text
-#     return model.encode([text])[0]
+def get_embedding_model(model_name=EMBEDDING_MODEL):
+    """Get a thread-local model instance"""
+    if not hasattr(thread_local, 'model') or thread_local.model_name != model_name:
+        if model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2", "hkunlp/instructor-xl"]:
+            print(f"Initializing model {model_name}...")
+            thread_local.model = SentenceTransformer(model_name)
+            thread_local.model_name = model_name
+    return thread_local.model
 
 
-def get_embedding(text: str, model_name: str = EMBEDDING_MODEL) -> list:
-    # Handle Ollama embeddings
+def get_embeddings_batch(texts, model_name=EMBEDDING_MODEL, batch_size=32):
+    """Process embeddings in batches to be more efficient"""
+    if model_name == "nomic-embed-text" or model_name.startswith("llama"):
+        # Ollama doesn't support batch processing, so process one by one
+        return [ollama.embeddings(model=model_name, prompt=text)["embedding"] for text in texts]
+
+    # Use SentenceTransformer's batch capability
+    model = get_embedding_model(model_name)
+
+    all_embeddings = []
+    # Process in smaller batches to avoid memory issues
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        if model_name == "hkunlp/instructor-xl":
+            # Special handling for instructor models
+            embeddings = model.encode(batch).tolist()
+        else:
+            embeddings = model.encode(batch).tolist()
+        all_embeddings.extend(embeddings)
+
+    return all_embeddings
+
+
+def get_embedding(text, model_name=EMBEDDING_MODEL):
+    """Get embedding for a single text"""
     if model_name == "nomic-embed-text" or model_name.startswith("llama"):
         response = ollama.embeddings(model=model_name, prompt=text)
         return response["embedding"]
 
-    # Handle SentenceTransformer models
-    elif model_name in ["all-mpnet-base-v2", "all-MiniLM-L6-v2"]:
-        model = SentenceTransformer(model_name)
-        return model.encode(text).tolist()
+    model = get_embedding_model(model_name)
 
-    # Handle instructor models which require special formatting
-    elif model_name == "hkunlp/instructor-xl":
-        model = SentenceTransformer(model_name)
+    if model_name == "hkunlp/instructor-xl":
         return model.encode([text])[0].tolist()
-
     else:
-        raise ValueError(
-            f"Unsupported model: {model_name}. Please use 'nomic-embed-text', 'all-mpnet-base-v2', or 'hkunlp/instructor-xl'")
+        return model.encode(text).tolist()
 
 
 # Store embedding in MongoDB
-def store_embedding(file: str, page: int, chunk: str, embedding: list):
+def store_embedding(file, page, chunk, embedding):
     document = {
         "file": file,
         "page": page,
@@ -83,18 +104,15 @@ def store_embedding(file: str, page: int, chunk: str, embedding: list):
 # Extract text from PDF
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
-    return [(page.number, page.get_text()) for page in doc]
+    text_by_page = [(page.number, page.get_text()) for page in doc]
+    doc.close()  # Explicitly close the document
+    return text_by_page
 
 
 # Split text into chunks with overlap
 def split_text_into_chunks(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     words = text.split()
     return [" ".join(words[i: i + chunk_size]) for i in range(0, len(words), chunk_size - overlap)]
-
-
-# Track memory usage
-def track_memory_usage():
-    return psutil.virtual_memory().percent
 
 
 # Process PDFs in a directory
@@ -112,6 +130,10 @@ def process_pdfs(data_dir):
     document_count = 0
     chunk_count = 0
 
+    # Pre-initialize the model to avoid concurrent initialization
+    if EMBEDDING_MODEL in ["all-mpnet-base-v2", "all-MiniLM-L6-v2", "hkunlp/instructor-xl"]:
+        get_embedding_model(EMBEDDING_MODEL)
+
     for file_name in pdf_files:
         pdf_path = os.path.join(data_dir, file_name)
         text_by_page = extract_text_from_pdf(pdf_path)
@@ -120,11 +142,25 @@ def process_pdfs(data_dir):
         for page_num, text in text_by_page:
             chunks = split_text_into_chunks(text)
             chunk_count += len(chunks)
-            for chunk_index, chunk in enumerate(chunks):
-                embedding = get_embedding(chunk)
-                store_embedding(file_name, page_num, chunk, embedding)
+
+            # Process chunks in batches of 16 to reduce model calls
+            batch_size = 16
+            for i in range(0, len(chunks), batch_size):
+                batch_chunks = chunks[i:i + batch_size]
+
+                # Get embeddings for the batch
+                embeddings = get_embeddings_batch(batch_chunks, EMBEDDING_MODEL, batch_size)
+
+                # Store each embedding
+                for j, (chunk, embedding) in enumerate(zip(batch_chunks, embeddings)):
+                    store_embedding(file_name, page_num, chunk, embedding)
+
+                # Force garbage collection after each batch
+                gc.collect()
 
         print(f"Processed {file_name}")
+        # Force garbage collection after each file
+        gc.collect()
 
     elapsed_time = time.time() - start_time
     current_memory, peak_memory = tracemalloc.get_traced_memory()
@@ -133,8 +169,8 @@ def process_pdfs(data_dir):
     # Ensure stats directory exists at the expected location
     stats_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "stats"))
     if not os.path.exists(stats_dir):
-        print(f"Error: Stats directory not found at {stats_dir}. Please create it manually.")
-        return  # Exit the function if the folder doesn't exist
+        os.makedirs(stats_dir)  # Create directory if it doesn't exist
+        print(f"Created stats directory at {stats_dir}")
 
     stats_path = os.path.join(stats_dir, "mongo_processing.csv")
 
@@ -174,6 +210,10 @@ def main():
     clear_mongo_collection()
     process_pdfs("../../data/")
     print("\n--- Done processing PDFs ---\n")
+
+    # Clean up resources
+    thread_local.__dict__.clear()
+    gc.collect()
 
 
 if __name__ == "__main__":
