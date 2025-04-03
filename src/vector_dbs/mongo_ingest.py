@@ -26,7 +26,7 @@ collection = db["embeddings"]
 # EMBEDDING_MODEL = "hkunlp/instructor-xl"
 EMBEDDING_MODEL = "nomic-embed-text"
 # EMBEDDING_MODEL = "all-mpnet-base-v2"
-CHUNK_SIZE = 100
+CHUNK_SIZE = 200
 CHUNK_OVERLAP = 20
 
 VECTOR_DIM = 768
