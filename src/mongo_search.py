@@ -13,13 +13,13 @@ from src.vector_dbs.mongo_ingest import CHUNK_OVERLAP
 
 
 # Embedding models
-# embedding_model = "all-mpnet-base-v2"
-embedding_model = 'nomic-embed-text'
-# embedding_model = 'hkunlp/instructor-xl'
+embedding_model = "all-mpnet-base-v2"
+#embedding_model = 'nomic-embed-text'
+#embedding_model = 'hkunlp/instructor-xl'
 
 
-response_model = 'mistral:latest'
-#response_model = 'llama2:7b'
+#response_model = 'mistral:latest'
+response_model = 'llama2:7b'
 
 CHUNK_SIZE = CHUNK_SIZE
 CHUNK_OVERLAP=CHUNK_OVERLAP

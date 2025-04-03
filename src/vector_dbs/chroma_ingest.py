@@ -15,10 +15,10 @@ import gc
 _model_cache = {}
 
 #EMBEDDING_MODEL = "all-mpnet-base-v2"
-EMBEDDING_MODEL = 'hkunlp/instructor-xl'
-#EMBEDDING_MODEL = "nomic-embed-text"
+#EMBEDDING_MODEL = 'hkunlp/instructor-xl'
+EMBEDDING_MODEL = "nomic-embed-text"
 
-CHUNK_SIZE=100
+CHUNK_SIZE=200
 CHUNK_OVERLAP=20
 
 # Anna's port
