@@ -17,7 +17,6 @@ embedding_model = "all-mpnet-base-v2"
 #embedding_model = 'nomic-embed-text'
 #embedding_model = 'hkunlp/instructor-xl'
 
-
 #response_model = 'mistral:latest'
 response_model = 'llama2:7b'
 
